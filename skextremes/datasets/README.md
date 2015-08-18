@@ -27,4 +27,4 @@ For example, to access datasets engine, you should be able to do:
 * a description (`engine.description`), 
 * the available fields of the dataset (in this case `engine.fields.corrosion` 
 and `engine.fields.time`) and
-* a function to obtain all the fields as an numpy array (`engine.asarray()`).
+* a function to obtain all the fields as a numpy array (`engine.asarray()`).
