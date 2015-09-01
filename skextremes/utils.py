@@ -2,6 +2,9 @@ import warnings as _warnings
 
 from numpy.random import randint as _randint
 import numpy as _np
+import scipy.stats as _st
+from scipy import optimize as _op
+from scipy.special import gamma as _gamma
 
 
 ###############################################################################
@@ -109,3 +112,82 @@ def bootstrap_ci(data, statfunction=_np.average, alpha = 0.05,
         # Each set of nvals along axis 0 corresponds to the data at the same
         # point in other axes.
         return stat[(nvals, _np.indices(nvals.shape)[1:].squeeze())]
+        
+###############################################################################
+# Function to estimate parameters of GEV using method of moments
+###############################################################################
+def gev_momfit(data):
+    """
+    Estimate parameters of Generalised Extreme Value distribution using the 
+    method of moments. The methodology has been extracted from appendix A.4
+    on EVA (see references below).
+    
+    Parameters
+    ----------
+    data : array_like
+        Sample extreme data
+    
+    Returns
+    -------
+    tuple
+        tuple with the shape, location and scale parameters. In this,
+        case, the shape parameter is always 0.
+    
+    References
+    ----------
+        DHI, (2003) 'EVA(Extreme Value Analysis - Reference manual)', DHI.
+        (http://www.tnmckc.org/upload/document/wup/1/1.3/Manuals/MIKE%2011/eva/EVA_RefManual.pdf)
+    """
+            
+    g = lambda n, x : _gamma(1 + n * x)
+    
+    mean = _np.mean(data)
+    std = _np.std(data)
+    skew = _st.skew(data)
+    
+    def minimize_skew(x):
+        a = -g(3, x) + 3 * g(1, x) * g(2, x) - 2 * g(1, x)**3
+        b = (g(2, x) - (g(1, x))**2)**1.5
+        c = abs(a / b - skew)
+        return c
+        
+    c = _op.fmin(minimize_skew, 0)[0] # first guess is set to 0
+    scale = std * abs(c) / _np.sqrt((g(2, c) - g(1, c)**2))
+    loc = mean - scale * (1 - g(1, c)) / c
+    
+    return c, loc, scale
+
+###############################################################################
+# Function to estimate parameters of Gumbel using method of moments
+###############################################################################
+def gum_momfit(data):
+    """
+    Estimate parameters of Gumbel distribution using the 
+    method of moments. 
+    
+    Parameters
+    ----------
+    data : array_like
+        Sample extreme data
+    
+    Returns
+    -------
+    tuple
+        tuple with the shape, location and scale parameters. In this,
+        case, the shape parameter is always 0.
+        
+    References
+    ----------
+        Wilks,D.S. (2006) 'Statistical Methods in the Atmospheric Sciences, second edition', Academic Press.
+        (http://store.elsevier.com/product.jsp?isbn=9780080456225&pagename=search)
+    """
+    
+    mean = _np.mean(data)
+    std = _np.std(data)
+    
+    euler_cte = 0.5772156649015328606065120900824024310421
+    
+    scale = std * _np.sqrt(6) / _np.pi    
+    loc = mean - scale * euler_cte
+    
+    return 0, loc, scale

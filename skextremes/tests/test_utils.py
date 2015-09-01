@@ -10,7 +10,7 @@ from numpy.testing import assert_array_almost_equal
 import numpy as np
 from scipy import stats
 
-from skextremes.utils import bootstrap_ci
+from skextremes.utils import bootstrap_ci, gev_momfit, gum_momfit
 
 class UtilsBootstrapTest(unittest.TestCase):
     """
@@ -68,6 +68,61 @@ class UtilsBootstrapTest(unittest.TestCase):
                                n_samples = 2000)
         assert_array_almost_equal(results, [0.22727273, 3.95121951])
         
+
+class UtilsGEVMOM(unittest.TestCase):
+    """
+    The values are tested against values obtained using the function
+    ``moment_estimation`` available in the R package nsRFA
+    (https://cran.r-project.org/web/packages/nsRFA/nsRFA.pdf).
+    Results can be obtained running the following in a R console:
+    ```
+    library(nsRFA)
+    data = c(4.5, 5.3, 4.8, 5.6, 4.8, 3.6, 4.3, 4.1,4.4, 3.6, 5.3, 4.6, 4.9, 
+    4.3, 4.8, 5.3, 4.5, 4.5, 4.2, 4.4, 4.7, 4.8, 4.6, 5.1, 4.4, 5.2, 5.4,5.8)
+    moment_estimation(data, dist = "GEV")
+    ```
+    """
+    
+    def __init__(self, *args, **kwargs):
+        super(UtilsGEVMOM, self).__init__(*args, **kwargs)
+        # Input data from original scikit boostrap implementation
+        self.data = np.array([4.5, 5.3, 4.8, 5.6, 4.8, 3.6, 4.3, 4.1, 4.4, 
+                               3.6, 5.3, 4.6, 4.9, 4.3, 4.8, 5.3, 4.5, 4.5, 
+                               4.2, 4.4, 4.7, 4.8, 4.6, 5.1, 4.4, 5.2, 5.4,
+                               5.8])
+        self.expected = (0.2889841, 4.5182381, 0.5416101)
+        
+    def test_fit(self):
+        results = gev_momfit(self.data)
+        assert_array_almost_equal(results, self.expected, decimal = 1)  
+        
+
+class UtilsGUMMOM(unittest.TestCase):
+    """
+    The values are tested against values obtained using the function
+    ``moment_estimation`` available in the R package nsRFA
+    (https://cran.r-project.org/web/packages/nsRFA/nsRFA.pdf).
+    Results can be obtained running the following in a R console:
+    ```
+    library(nsRFA)
+    data = c(4.5, 5.3, 4.8, 5.6, 4.8, 3.6, 4.3, 4.1,4.4, 3.6, 5.3, 4.6, 4.9, 
+    4.3, 4.8, 5.3, 4.5, 4.5, 4.2, 4.4, 4.7, 4.8, 4.6, 5.1, 4.4, 5.2, 5.4,5.8)
+    moment_estimation(data, dist = "GUMBEL")
+    ```
+    """
+    
+    def __init__(self, *args, **kwargs):
+        super(UtilsGUMMOM, self).__init__(*args, **kwargs)
+        # Input data from original scikit boostrap implementation
+        self.data = np.array([4.5, 5.3, 4.8, 5.6, 4.8, 3.6, 4.3, 4.1, 4.4, 
+                               3.6, 5.3, 4.6, 4.9, 4.3, 4.8, 5.3, 4.5, 4.5, 
+                               4.2, 4.4, 4.7, 4.8, 4.6, 5.1, 4.4, 5.2, 5.4,
+                               5.8])
+        self.expected = (0, 4.4646490, 0.4201093)
+        
+    def test_fit(self):
+        results = gum_momfit(self.data)
+        assert_array_almost_equal(results, self.expected, decimal = 1)  
 
 if __name__ == "__main__":
     unittest.main(verbosity = 2)
