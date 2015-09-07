@@ -652,3 +652,6 @@ class Gumbel(GEV):
         self.scale = self.params['scale']
         self.distr = _st.gumbel_r(loc = self.loc, 
                                    scale = self.scale)
+
+class GPD(_Base):
+    pass
