@@ -40,9 +40,9 @@ class Harris1996Test(unittest.TestCase):
         self.assertRaises(Exception, Harris1996)
         self.assertRaises(Exception, Harris1996, 1)
     
-    def test_plot_results_dict(self):
+    def test_plot_summary_dict(self):
         har = Harris1996(self.extremes)
-        fig, ax1, ax2, ax3 = har.plot_results()
+        fig, ax1, ax2, ax3 = har.plot_summary()
         self.assertEqual(len(fig.get_axes()), 3)
         self.assertTrue(ax1.has_data())
         self.assertTrue(ax2.has_data())
@@ -74,9 +74,9 @@ class LiebleinTest(unittest.TestCase):
         self.assertRaises(Exception, Lieblein)
         self.assertRaises(Exception, Lieblein, 1)
     
-    def test_plot_results(self):
+    def test_plot_summary(self):
         lie = Lieblein(self.extremes)
-        fig, ax1, ax2, ax3 = lie.plot_results()
+        fig, ax1, ax2, ax3 = lie.plot_summary()
         self.assertEqual(len(fig.get_axes()), 3)
         self.assertTrue(ax1.has_data())
         self.assertTrue(ax2.has_data())
@@ -121,10 +121,10 @@ class PPPLiteratureTest(unittest.TestCase):
         self.assertRaises(Exception, PPPLiterature)
         self.assertRaises(Exception, PPPLiterature, 1)
     
-    def test_plot_results(self):
+    def test_plot_summary(self):
         for how in self.hows:
             pli = PPPLiterature(self.extremes, ppp = how)
-            fig, ax1, ax2, ax3 = pli.plot_results()
+            fig, ax1, ax2, ax3 = pli.plot_summary()
             self.assertEqual(len(fig.get_axes()), 3)
             self.assertTrue(ax1.has_data())
             self.assertTrue(ax2.has_data())

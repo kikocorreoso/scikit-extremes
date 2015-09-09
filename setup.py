@@ -20,7 +20,7 @@ Programming Language :: Python :: 3.3
 Programming Language :: Python :: 3.4''',
     keywords = 'statistics extremes EVT EVA',
     packages = find_packages(exclude=['tests']),
-    install_requires = ['numpy', 'matplotlib', 'scipy', 'numdifftools'],
+    install_requires = ['numpy', 'matplotlib', 'scipy', 'numdifftools >= 0.9.2'],
     extras_require = {},
     package_data={
     'datasets': ['*.csv']

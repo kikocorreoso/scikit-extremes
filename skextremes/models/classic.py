@@ -532,7 +532,7 @@ class GEV(_Base):
         ci_Tu = _np.zeros(sT.shape)
         ci_Td = _np.zeros(sT.shape)
         if c:         # If c then we are calculating GEV confidence intervals
-            varcovar = _np.linalg.inv(hess.hessian([c, loc, scale]))
+            varcovar = _np.linalg.inv(hess([c, loc, scale]))
             self.params_ci = OrderedDict()
             se = _np.sqrt(_np.diag(varcovar))
             self._se = se
@@ -550,7 +550,7 @@ class GEV(_Base):
                 ci_Tu[i] = val + _st.norm.ppf(1 - self.ci / 2) * _np.sqrt(se)
                 ci_Td[i] = val - _st.norm.ppf(1 - self.ci / 2) * _np.sqrt(se)
         else:         # else then we are calculating Gumbel confidence intervals
-            varcovar = _np.linalg.inv(hess.hessian([loc, scale]))
+            varcovar = _np.linalg.inv(hess([loc, scale]))
             self.params_ci = OrderedDict()
             se = _np.sqrt(_np.diag(varcovar))
             self._se = se
