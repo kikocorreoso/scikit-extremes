@@ -27,8 +27,8 @@ def wind_EWTSII_Exact(vave, k, T = 50, n = 23037):
         Long term mean wind speed
     k : float or int
         Weibull k parameter as defined in the wind industry. To obtain the k
-        parameter using scipy have a look here: 
-        http://stackoverflow.com/questions/17481672/fitting-a-weibull-distribution-using-scipy/17498673#17498673
+        parameter using scipy `have a look here 
+        <http://stackoverflow.com/questions/17481672/fitting-a-weibull-distribution-using-scipy/17498673#17498673>`_.
         The `c` parameter in scipy is the k equivalent in the wind industry.
     T : float or int
         Return period in years. Default value is 50 (years).
@@ -65,8 +65,8 @@ def wind_EWTSII_Gumbel(vave, k, T = 50, n = 23037):
         Long term mean wind speed
     k : float or int
         Weibull k parameter as defined in the wind industry. To obtain the k
-        parameter using scipy have a look here: 
-        http://stackoverflow.com/questions/17481672/fitting-a-weibull-distribution-using-scipy/17498673#17498673
+        parameter using scipy `have a look here 
+        <http://stackoverflow.com/questions/17481672/fitting-a-weibull-distribution-using-scipy/17498673#17498673>`_.
         The `c` parameter in scipy is the k equivalent in the wind industry.
     T : float or int
         Return period in years. Default value is 50 (years).
@@ -103,8 +103,8 @@ def wind_EWTSII_Davenport(vave, k, T = 50, n = 23037):
         Long term mean wind speed
     k : float or int
         Weibull k parameter as defined in the wind industry. To obtain the k
-        parameter using scipy have a look here: 
-        http://stackoverflow.com/questions/17481672/fitting-a-weibull-distribution-using-scipy/17498673#17498673
+        parameter using scipy `have a look here 
+        <http://stackoverflow.com/questions/17481672/fitting-a-weibull-distribution-using-scipy/17498673#17498673>`_.
         The `c` parameter in scipy is the k equivalent in the wind industry.
     T : float or int
         Return period in years. Default value is 50 (years).
