@@ -107,7 +107,7 @@ Once the model is fitted you can see the results:
 
 
 
-.. image:: User_guide_files%5CUser_guide_12_1.png
+.. image:: _static%5CUser_guide_12_1.png
 
 
 To see, for instance, the parameters obtained you can use:
@@ -164,5 +164,5 @@ Another approach would be to use a more classic model:
 
 
 
-.. image:: User_guide_files%5CUser_guide_18_0.png
+.. image:: _static%5CUser_guide_18_0.png
 

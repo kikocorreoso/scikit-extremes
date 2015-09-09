@@ -76,5 +76,6 @@ Contents:
    Small EVT introduction
    User guide
    Module utils
-   Module models.engineering
    Module models.wind
+   Module models.engineering
+   Module models.classic

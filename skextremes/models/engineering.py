@@ -3,7 +3,7 @@ This module contains algorithms found in the literature and used extensively in
 some fields.
 
 The following paragraphs have been adapted from 
-[Makonnen, 2006](http://journals.ametsoc.org/doi/pdf/10.1175/JAM2349.1)
+`Makonnen, 2006 <http://journals.ametsoc.org/doi/pdf/10.1175/JAM2349.1>`_
 
 The return period of an event of a specific large magnitude is of fundamental 
 interest. All evaluations of the risks of extreme events require methods to 
@@ -14,30 +14,32 @@ for the safety and economically optimized engineering of future communities to
 be able to estimate the changes in the frequency of various natural hazards 
 with climatic change, and analyzing trends in the weather extremes.
 
-The return period R (in years) of an event is related to the probability P of 
-not exceeding this event in one year by
+The return period :math:`R` (in years) of an event is related to the 
+probability :math:`P` of not exceeding this event in one year by
 
-R = 1 / 1 - P)
+.. math:: R=\\frac{1}{1 - P}
 
-A  standard  method  to  estimate R from  measured data is the following. One 
-first ranks the data, typically annual extremes or values over a threshold, in 
-increasing order of magnitude from the smallest m = 1 to the largest m = N and 
-associates a cumulative probability P to  each  of  the mth  smallest  values.  
-Second,  one  fits  a line  to  the  ranked  values  by  some  fitting  
-procedure. Third, one interpolates or extrapolates from the graph so that the 
-return period of the extreme value of interest is estimated.
+A  standard  method  to  estimate :math:`R` from  measured data is the 
+following. One first ranks the data, typically annual extremes or values over a 
+threshold, in increasing order of magnitude from the smallest :math:`m = 1` to 
+the largest :math:`m = N` and associates a cumulative probability :math:`P` to  
+each  of  the mth  smallest  values.  Second,  one  fits  a line  to  the  
+ranked  values  by  some  fitting  procedure. Third, one interpolates or 
+extrapolates from the graph so that the return period of the extreme value of 
+interest is estimated.
 
 Basically, this extreme value analysis method, introduced by Hazen (1914), can 
-be applied directly by using arithmetic  paper. However, interpolation and 
+be applied directly by using arithmetic paper. However, interpolation and 
 extrapolation can be made more easily when the points fall on a straight line, 
 which is rarely the case in an order-ranked plot of a physical variable on 
 arithmetic paper. Therefore, almost invariably, the analysis is made by 
-modifying the scale of the probability P, and sometimes also that of the random
-variable x, in such a way that the plot against x of the anticipated cumulative  
-distribution function P = F(x) of the variable appears as a straight line. 
-Typically, the Gumbel probability paper (Gumbel  1958) is used because  in  
-many cases the distribution of the extremes, each selected from r events, 
-asymptotically approaches the Gumbel distribution when r goes  to  infinity.
+modifying the scale of the probability :math:`P`, and sometimes also that of 
+the random variable :math:`x`, in such a way that the plot against :math:`x` of 
+the anticipated cumulative distribution function :math:`P = F(x)` of the 
+variable appears as a straight line. Typically, the Gumbel probability paper 
+(Gumbel  1958) is used because  in many cases the distribution of the extremes, 
+each selected from r events, asymptotically approaches the Gumbel distribution 
+when :math:`r` goes to infinity.
 """
 
 from scipy import integrate as _integrate
@@ -54,8 +56,8 @@ docstringbase = """
     This methodology differ from others in the module in the location of the 
     probability plotting position.
     
-    Parameters
-    ----------
+    **Parameters**
+    
     data : array_like
         Extreme values dataset.
     preconditioning : int or float
@@ -64,13 +66,30 @@ docstringbase = """
         convergence of the curve fit and therefore improve the estimate T-year 
         extreme wind speed. Default value is 1.
     
-    Methods
-    -------
+    **Attributes**
+
+    results : dict
+        A dictionary containing different parameters of the fit.
+    c : float
+        Value of the 'shape' parameter. In the case of the Gumbel distribution
+        this value is always 0.        
+    loc : float
+        Value of the 'localization' parameter.
+    scale : float
+        Value os the 'scale' parameter.
+    distr : frozen ``scipy.stats.gumbel_r`` distribution
+        Frozen distribution of type ``scipy.stats.gumbel_r`` with ``c``,
+        ``loc`` and ``scale`` parameters equal to ``self.c``, ``self.loc``
+        and ``self.scale``, respectively.
+    
+    **Methods**
+
     Methods to calculate the fit:
+    
         {1}
     
     Methods to plot results:
-        self.plot_results()
+
         self.plot_summary()
     """
 
@@ -82,7 +101,15 @@ class _GumbelBase:
         self.results = {}
     
     
-    def plot_results(self):
+    def plot_summary(self):
+        """
+        Summary plot including PP plot, QQ plot, empirical and fitted pdf and
+        return values and periods.
+        
+        **Returns**
+        
+        4-panel plot including PP, QQ, pdf and return level plots
+        """
         # data to be used
         x = self.results['data']
         extremes = self.results['Values for return period from 2 to 100 years']
@@ -125,7 +152,7 @@ class _GumbelBase:
         return fig, ax1, ax2, ax3
         
 class Harris1996(_GumbelBase):
-    __doc__ = docstringbase.format('Harris1996', 'self.ppp_harris1996()')
+    __doc__ = docstringbase.format('Harris1996', '_ppp_harris1996')
     
     def __init__(self, data = None, ppp = "Harris1996", **kwargs):
         super().__init__(**kwargs)
@@ -151,8 +178,8 @@ class Harris1996(_GumbelBase):
         require tabulated coefficients, is available for any number of data up to at 
         least 50, and provides a quantitative measure of goodness of fit.
         
-        References
-        ----------
+        **References**
+        
             Harris RI, (1996), 'Gumbel re-visited -- a new look at extreme value 
             statistics applied to wind speeds', Journal of Wind Engineering and 
             Industrial Aerodynamics, 59, 1-22. 
@@ -230,7 +257,7 @@ class Harris1996(_GumbelBase):
     
 
 class Lieblein(_GumbelBase):
-    __doc__ = docstringbase.format('Lieblein', 'self.ppp_lieblein()')
+    __doc__ = docstringbase.format('Lieblein', '_ppp_lieblein')
     
     def __init__(self, data = None, ppp = "Lieblein", **kwargs):
         super().__init__(**kwargs)
@@ -257,8 +284,8 @@ class Lieblein(_GumbelBase):
         least squares fit and considering several probability-plotting positions 
         used in the wild.
         
-        References
-        ----------
+        **References**
+        
             Lieblein J, (1974), 'Efficient methods of Extreme-Value Methodology', 
             NBSIR 74-602, National Bureau of Standards, U.S. Department of Commerce.
         """
@@ -405,19 +432,29 @@ class Lieblein(_GumbelBase):
     
 
 class PPPLiterature(_GumbelBase):
-    __doc__ = docstringbase.format('several', """self.ppp_adamowski()
-        self.ppp_beard()
-        self.ppp_blom()
-        self.ppp_gringorten()
-        self.ppp_hazen()
-        self.ppp_hirsch()
-        self.ppp_iec56()
-        self.ppp_landwehr()
-        self.ppp_laplace()
-        self.ppp_mm()
-        self.ppp_tukey()
-        self.ppp_weibull()
-        self.ppp_all()""")
+    __doc__ = docstringbase.format('several', """_ppp_adamowski
+    
+        _ppp_beard
+
+        _ppp_blom
+
+        _ppp_gringorten
+
+        _ppp_hazen
+
+        _ppp_hirsch
+
+        _ppp_iec56
+
+        _ppp_landwehr
+
+        _ppp_laplace
+
+        _ppp_mm
+
+        _ppp_tukey
+
+        _ppp_weibull""")
     
     def __init__(self, data = None, ppp = "Weibull", **kwargs):
         super().__init__(**kwargs)
@@ -515,10 +552,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.25) / (N + 0.5)
         
-        References
-        ----------
+        .. math::
+        
+           P = \\frac{(N + 1) - 0.25}{N + 0.5}
+        
+        **References**
+        
             De, M., 2000. A new unbiased plotting position formula for gumbel 
             distribution. Stochastic Envir. Res. Risk Asses., 14: 1-7.
         """
@@ -530,10 +570,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.31) / (N + 0.38)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.31}{N + 0.38}
+        
+        **References**
+        
             De, M., 2000. A new unbiased plotting position formula for gumbel 
             distribution. Stochastic Envir. Res. Risk Asses., 14: 1-7.
         """
@@ -545,10 +588,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.375) / (N + 0.25)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.375}{N + 0.25}
+        
+        **References**
+        
             De, M., 2000. A new unbiased plotting position formula for gumbel 
             distribution. Stochastic Envir. Res. Risk Asses., 14: 1-7.
         """
@@ -560,10 +606,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.3) / (N + 0.4)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.3}{N + 0.4}
+        
+        **References**
+        
             De, M., 2000. A new unbiased plotting position formula for gumbel 
             distribution. Stochastic Envir. Res. Risk Asses., 14: 1-7.
         """
@@ -575,10 +624,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
                 
         Probability positions are defined as:
-        P = ((N + 1) - 0.4) / (N + 0.2)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.4}{N + 0.2}
+        
+        **References**
+        
             Cunnane, C., 1978. Unbiased plotting positions: A review. 
             J. Hydrol., 37: 205-222.
         """
@@ -590,10 +642,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.44) / (N + 0.12)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.44}{N + 0.12}
+        
+        **References**
+        
             Adeboye, O.B. and M.O. Alatise, 2007. Performance of probability 
             distributions and plotting positions in estimating the flood of 
             River Osun at Apoje Sub-basin, Nigeria. Agric. Eng. Int.: 
@@ -607,10 +662,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.5) / N
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.5}{N}
+        
+        **References**
+        
             Adeboye, O.B. and M.O. Alatise, 2007. Performance of probability 
             distributions and plotting positions in estimating the flood of 
             River Osun at Apoje Sub-basin, Nigeria. Agric. Eng. Int.: 
@@ -624,10 +682,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) + 0.5) / (N + 1)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) + 0.5}{N + 1}
+        
+        **References**
+        
             Jay, R.L., O. Kalman and M. Jenkins, 1998. Integrated planning and 
             management for Urban water supplies considering multi uncertainties. 
             Technical Report, Department of Civil and Environmental Engineering, 
@@ -641,10 +702,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.5) / (N + 0.25)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.5}{N + 0.25}
+        
+        **References**
+        
             Forthegill, J.C., 1990. Estimating the cumulative probability of 
             failure data points to be plotted on weibull and other probability 
             paper. Electr. Insulation Transact., 25: 489-492.
@@ -657,10 +721,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.35) / N
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.35}{N}
+        
+        **References**
+        
             Makkonen, L., 2008. Problem in the extreme value analysis. 
             Structural Safety, 30: 405-419.
         """
@@ -672,10 +739,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) + 1) / (N + 2)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) + 1}{N + 2}
+        
+        **References**
+        
             Jay, R.L., O. Kalman and M. Jenkins, 1998. Integrated planning and 
             management for Urban water supplies considering multi uncertainties. 
             Technical Report, Department of Civil and Environmental Engineering, 
@@ -689,10 +759,13 @@ class PPPLiterature(_GumbelBase):
         for the probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 0.4) / N
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 0.4}{N}
+        
+        **References**
+        
             Makkonen, L., 2008. Problem in the extreme value analysis. 
             Structural Safety, 30: 405-419.
         """
@@ -704,10 +777,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) - 1/3) / (N + 1/3)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) - 1/3}{N + 1/3}
+        
+        **References**
+        
             Makkonen, L., 2008. Problem in the extreme value analysis. 
             Structural Safety, 30: 405-419.
         """
@@ -719,10 +795,13 @@ class PPPLiterature(_GumbelBase):
         probability positions.
         
         Probability positions are defined as:
-        P = ((N + 1) + 1) / (N + 1)
+
+        .. math::
         
-        References
-        ----------
+           P = \\frac{(N + 1) + 1}{N + 1}
+        
+        **References**
+        
             Hynman, R.J. and Y. Fan, 1996. Sample quantiles in statistical 
             packages. Am. Stat., 50: 361-365.
         """

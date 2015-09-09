@@ -1,3 +1,8 @@
+"""
+This module provides utility functions that are used within scikit-extremes
+that are also useful for external consumption.
+"""
+
 import warnings as _warnings
 
 from numpy.random import randint as _randint
@@ -28,10 +33,10 @@ def bootstrap_ci(data, statfunction=_np.average, alpha = 0.05,
     
     This function has been derived and simplified from scikits-bootstrap 
     package created by cgevans (https://github.com/cgevans/scikits-bootstrap).
-    All the credits shall go for him.
+    All the credits shall go to him.
 
-    Parameters
-    ----------
+    **Parameters**
+    
     data : array_like, shape (N, ...) OR tuple of array_like all with shape (N, ...)
         Input data. Data points are assumed to be delineated by axis 0. Beyond this,
         the shape doesn't matter, so long as ``statfunction`` can be applied to the
@@ -39,38 +44,37 @@ def bootstrap_ci(data, statfunction=_np.average, alpha = 0.05,
         axis 0) are passed in order as separate parameters to the statfunction. The
         type of data (single array or tuple of arrays) can be explicitly specified
         by the multi parameter.
-    statfunction : function (data, weights=(weights, optional)) -> value
+    statfunction : function (data, weights = (weights, optional)) -> value
         This function should accept samples of data from ``data``. It is applied
         to these samples individually. 
-        
-        If using the ABC method, the function _must_ accept a named ``weights`` 
-        parameter which will be an array_like with weights for each sample, and 
-        must return a _weighted_ result. Otherwise this parameter is not used
-        or required. Note that numpy's np.average accepts this. (default=np.average)
     alpha : float, optional
         The percentiles to use for the confidence interval (default=0.05). The 
         returned values are (alpha/2, 1-alpha/2) percentile confidence
         intervals. 
-    n_samples : float, optional
+    n_samples : int or float, optional
         The number of bootstrap samples to use (default=100)
         
-    Returns
-    -------
+    **Returns**
+    
     confidences : tuple of floats
         The confidence percentiles specified by alpha
 
-    Calculation Methods
-    -------------------
+    **Calculation Methods**
+    
     'pi' : Percentile Interval (Efron 13.3)
         The percentile interval method simply returns the 100*alphath bootstrap
         sample's values for the statistic. This is an extremely simple method of 
         confidence interval calculation. However, it has several disadvantages 
-        compared to the bias-corrected accelerated method, which is the default.
+        compared to the bias-corrected accelerated method.
+        
+        If you want to use more complex calculation methods, please, see
+        `scikits-bootstrap package 
+        <https://github.com/cgevans/scikits-bootstrap>`_.
 
 
-    References
-    ----------
-        Efron (1993) 'An Introduction to the Bootstrap', Chapman & Hall.
+    **References**
+    
+        Efron (1993): 'An Introduction to the Bootstrap', Chapman & Hall.
     """
 
     def bootstrap_indexes(data, n_samples=10000):
@@ -122,21 +126,22 @@ def gev_momfit(data):
     method of moments. The methodology has been extracted from appendix A.4
     on EVA (see references below).
     
-    Parameters
-    ----------
+    **Parameters**
+    
     data : array_like
         Sample extreme data
     
-    Returns
-    -------
+    **Returns**
+    
     tuple
         tuple with the shape, location and scale parameters. In this,
         case, the shape parameter is always 0.
     
-    References
-    ----------
-        DHI, (2003) 'EVA(Extreme Value Analysis - Reference manual)', DHI.
-        (http://www.tnmckc.org/upload/document/wup/1/1.3/Manuals/MIKE%2011/eva/EVA_RefManual.pdf)
+    **References**
+    
+        DHI, (2003): '`EVA(Extreme Value Analysis - Reference manual) 
+        <http://www.tnmckc.org/upload/document/wup/1/1.3/Manuals/MIKE%2011/eva/EVA_RefManual.pdf>`_', 
+        DHI.
     """
             
     g = lambda n, x : _gamma(1 + n * x)
@@ -163,23 +168,26 @@ def gev_momfit(data):
 def gum_momfit(data):
     """
     Estimate parameters of Gumbel distribution using the 
-    method of moments. 
+    method of moments. The methodology has been extracted from Wilks 
+    (see references below).
     
-    Parameters
-    ----------
+    **Parameters**
+    
     data : array_like
         Sample extreme data
     
-    Returns
-    -------
+    **Returns**
+    
     tuple
         tuple with the shape, location and scale parameters. In this,
         case, the shape parameter is always 0.
         
-    References
-    ----------
-        Wilks,D.S. (2006) 'Statistical Methods in the Atmospheric Sciences, second edition', Academic Press.
-        (http://store.elsevier.com/product.jsp?isbn=9780080456225&pagename=search)
+    **References**
+    
+    
+        Wilks,D.S. (2006): '`Statistical Methods in the Atmospheric Sciences, 
+        second edition <http://store.elsevier.com/Statistical-Methods-in-the-Atmospheric-Sciences/Daniel-Wilks/isbn-9780080456225/>`_', 
+        Academic Press.
     """
     
     mean = _np.mean(data)

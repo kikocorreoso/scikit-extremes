@@ -1,4 +1,5 @@
-"""Module containing classical generalistic models
+"""
+Module containing classical generalistic models
 
 Gumbel:
     To be used applying the Block Maxima approach
@@ -25,66 +26,10 @@ from ..utils import gev_momfit as _gev_momfit
 from ..utils import gum_momfit as _gum_momfit
 
 class _Base:
-    """
-    Base class for univariate parametric models
-
-    Attributes
-    ----------
-    params : OrderedDict
-        Ordered dictionary with the values of the 'shape', 'location' and
-        'scale' parameters of the distribution.
-    c : flt
-        Float value for the 'shape' parameter of the distribution.
-    loc : flt
-        Float value for the 'location' parameter of the distribution.
-    scale : flt
-        Float value for the 'scale' parameter of the distribution.
-    distr : object
-        Frozen RV object with the same methods of a continuous scipy
-        distribution but holding the given shape, location, and scale 
-        fixed. See http://docs.scipy.org/doc/scipy/reference/stats.html
-        for more info.
-    data : array_like
-        Input data used for the fit
-    fit_method : str
-        String indicating the method used to fit the distribution,
-        values can be 'mle', 'mom' or 'lmoments'.
-
-    """
+    
     def __init__(self, data, fit_method = 'mle', 
                        ci = 0, ci_method = None,
-                       return_periods = None, frec = 1):
-        """
-        Parameters
-        ----------
-        data : array_like
-            1D array_like with the extreme values to be considered
-        fit_method : str
-            String indicating the method used to fit the distribution.
-            Availalable values are 'mle' (default value) and 'lmoments'.
-        ci : float (optional)
-            Float indicating the value to be used for the calculation of the 
-            confidence interval. The returned values are (ci/2, 1-ci/2) 
-            percentile confidence intervals. E.g., a value of 0.05 will 
-            return confidence intervals at 0.025 and 0.975 percentiles.
-        ci_method : str (optional)
-            String indicating the method to be used to calculate the 
-            confidence intervals. If ci is not supplied this parameter will 
-            be ignored. Possible values depend of the fit method chosen. If 
-            the fit method is 'mle' possible values for ci_method are 
-            'delta' and 'bootstrap', if the fit method is 
-            'lmoments' possible value for ci_method is 'bootstrap'.
-                'delta' is for delta method.
-                'bootstrap' is for parametric bootstrap.
-        return_period : array_like (optional)
-            1D array_like of values for the return period. Values indicate
-            years. 
-        frec : int or float
-            Value indicating the frecuency of events per year. If frec is 
-            not provided the data will be treated as yearly data (1 value per 
-            year).
-        """
-        
+                       return_periods = None, frec = 1):        
         # Data to be used for the fit
         self.data = data
         
@@ -155,13 +100,13 @@ class _Base:
         """
         Probability density function at x of the given frozen RV.
         
-        Parameters
-        ----------
+        **Parameters**
+        
         x : array_like
             quantiles
             
-        Returns
-        -------
+        **Returns**
+        
         pdf : ndarray
             Probability density function evaluated at x
         """
@@ -173,13 +118,13 @@ class _Base:
         """
         Cumulative distribution function of the given frozen RV.
         
-        Parameters
-        ----------
+        **Parameters**
+        
         x : array_like
             quantiles
 
-        Returns
-        -------
+        **Returns**
+        
         cdf : ndarray
             Cumulative distribution function evaluated at `x`
         """
@@ -191,13 +136,13 @@ class _Base:
         """
         Percent point function (inverse of cdf) at q of the given frozen RV.
 
-        Parameters
-        ----------
+        **Parameters**
+        
         q : array_like
             lower tail probability
         
-        Returns
-        -------
+        **Returns**
+        
         x : array_like
             quantile corresponding to the lower tail probability q.
         """
@@ -207,10 +152,10 @@ class _Base:
     def stats(self, moments):
         # A shortcut to the frozen distribution stats as provided by scipy.
         """
-        Some statistics of the given RV
+        Some statistics of the given RV.
 
-        Parameters
-        ----------
+        **Parameters**
+        
         moments : str, optional
             composed of letters ['mvsk'] defining which moments to compute:
             'm' = mean,
@@ -219,8 +164,8 @@ class _Base:
             'k' = (Fisher's) kurtosis.
             (default='mv')
 
-        Returns
-        -------
+        **Returns**
+        
         stats : sequence
             of requested moments.
         """
@@ -249,8 +194,8 @@ class _Base:
         All parameters are predefined from the frozen fitted model and empirical
         data available.
 
-        Returns
-        -------
+        **Returns**
+        
         Density plot.
         """
         
@@ -272,8 +217,8 @@ class _Base:
         All parameters are predefined from the frozen fitted model and empirical
         data available.
         
-        Returns
-        -------
+        **Returns**
+        
         PP plot. 
         """
         
@@ -298,8 +243,8 @@ class _Base:
         All parameters are predefined from the frozen fitted model and empirical
         data available.
         
-        Returns
-        -------
+        **Returns**
+        
         QQ plot. 
         """
         
@@ -326,8 +271,8 @@ class _Base:
         information has been provided it will show the confidence interval 
         values.
         
-        Returns
-        -------
+        **Returns**
+        
         Return values and return periods plot. 
         """
         
@@ -357,8 +302,8 @@ class _Base:
         Summary plot including PP plot, QQ plot, empirical and fitted pdf and
         return values and periods.
         
-        Returns
-        -------
+        **Returns**
+        
         4-panel plot including PP, QQ, pdf and return level plots
         """
         
@@ -421,8 +366,59 @@ class _Base:
         
         
 class GEV(_Base):
-    """GEV Class docs
-    ...
+    """
+    Class to fit data to a Generalised extreme value (GEV) distribution.
+    
+    **Parameters**
+        
+    data : array_like
+        1D array_like with the extreme values to be considered
+    fit_method : str
+        String indicating the method used to fit the distribution.
+        Availalable values are 'mle' (default value), 'mom' and 'lmoments'.
+    ci : float (optional)
+        Float indicating the value to be used for the calculation of the 
+        confidence interval. The returned values are (ci/2, 1-ci/2) 
+        percentile confidence intervals. E.g., a value of 0.05 will 
+        return confidence intervals at 0.025 and 0.975 percentiles.
+    ci_method : str (optional)
+        String indicating the method to be used to calculate the 
+        confidence intervals. If ``ci`` is not supplied this parameter will 
+        be ignored. Possible values depend of the fit method chosen. If 
+        the fit method is 'mle' possible values for ci_method are 
+        'delta' and 'bootstrap', if the fit method is 'mom' or 
+        'lmoments' possible value for ci_method is 'bootstrap'.
+            'delta' is for delta method.
+            'bootstrap' is for parametric bootstrap.
+    return_period : array_like (optional)
+        1D array_like of values for the *return period*. Values indicate
+        **years**. 
+    frec : int or float
+        Value indicating the frecuency of events per year. If frec is 
+        not provided the data will be treated as yearly data (1 value per 
+        year).
+
+    **Attributes and Methods**
+    
+    params : OrderedDict
+        Ordered dictionary with the values of the *shape*, *location* and
+        *scale* parameters of the distribution.
+    c : flt
+        Float value for the *shape* parameter of the distribution.
+    loc : flt
+        Float value for the *location* parameter of the distribution.
+    scale : flt
+        Float value for the *scale* parameter of the distribution.
+    distr : object
+        Frozen RV object with the same methods of a continuous scipy
+        distribution but holding the given *shape*, *location*, and *scale* 
+        fixed. See http://docs.scipy.org/doc/scipy/reference/stats.html
+        for more info.
+    data : array_like
+        Input data used for the fit
+    fit_method : str
+        String indicating the method used to fit the distribution,
+        values can be 'mle', 'mom' or 'lmoments'.
     """
     
     def _fit(self):
@@ -622,6 +618,10 @@ class GEV(_Base):
             self._ci_bootstrap()
 
 class Gumbel(GEV):
+    __doc__ = GEV.__doc__.replace("Generalised extreme value (GEV) distribution.", 
+                                  ("Gumbel distribution. Note that this is a "
+                                   "special case of the ``GEV`` class where "
+                                   "the 'shape' is fixed to 0."))
     
     def _fit(self):
         
