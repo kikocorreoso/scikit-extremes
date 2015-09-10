@@ -1,0 +1,995 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skextremes.models.engineering &mdash; scikit-extremes 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="scikit-extremes 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../../../index.html" class="icon icon-home"> scikit-extremes
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Small EVT introduction.html">Quick and incomplete Extreme Value Theory introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../Small EVT introduction.html#fields-of-interest">Fields of interest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Small EVT introduction.html#a-brief-history-of-extreme-value-theory">A brief history of Extreme Value Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Small EVT introduction.html#general-approaches-to-estimate-extreme-values">General approaches to estimate extreme values</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../Small EVT introduction.html#block-maxima-generalised-extreme-value-gev-and-gumbel-distribution">Block-Maxima + Generalised Extreme Value (GEV) and Gumbel distribution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Small EVT introduction.html#peak-over-threshold-pot-generalised-pareto-gp-distribution">Peak-Over-Threshold (POT) + Generalised Pareto (GP) distribution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Small EVT introduction.html#references-used-to-prepare-this-section">References used to prepare this section</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../User guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Module utils.html">skextremes.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Module models.wind.html">skextremes.models.wind</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Module models.engineering.html">skextremes.models.engineering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Module models.classic.html">skextremes.models.classic</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">scikit-extremes</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skextremes.models.engineering</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for skextremes.models.engineering</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains algorithms found in the literature and used extensively in </span>
+<span class="sd">some fields.</span>
+
+<span class="sd">The following paragraphs have been adapted from </span>
+<span class="sd">`Makonnen, 2006 &lt;http://journals.ametsoc.org/doi/pdf/10.1175/JAM2349.1&gt;`_</span>
+
+<span class="sd">The return period of an event of a specific large magnitude is of fundamental </span>
+<span class="sd">interest. All evaluations of the risks of extreme events require methods to </span>
+<span class="sd">statistically estimate their return periods from the measured data. Such</span>
+<span class="sd">methods are widely used in building codes and regulations concerning the design </span>
+<span class="sd">of structures and community planning, as examples. Furthermore, it is crucial </span>
+<span class="sd">for the safety and economically optimized engineering of future communities to </span>
+<span class="sd">be able to estimate the changes in the frequency of various natural hazards </span>
+<span class="sd">with climatic change, and analyzing trends in the weather extremes.</span>
+
+<span class="sd">The return period :math:`R` (in years) of an event is related to the </span>
+<span class="sd">probability :math:`P` of not exceeding this event in one year by</span>
+
+<span class="sd">.. math:: R=\\frac{1}{1 - P}</span>
+
+<span class="sd">A  standard  method  to  estimate :math:`R` from  measured data is the </span>
+<span class="sd">following. One first ranks the data, typically annual extremes or values over a </span>
+<span class="sd">threshold, in increasing order of magnitude from the smallest :math:`m = 1` to </span>
+<span class="sd">the largest :math:`m = N` and associates a cumulative probability :math:`P` to  </span>
+<span class="sd">each  of  the mth  smallest  values.  Second,  one  fits  a line  to  the  </span>
+<span class="sd">ranked  values  by  some  fitting  procedure. Third, one interpolates or </span>
+<span class="sd">extrapolates from the graph so that the return period of the extreme value of </span>
+<span class="sd">interest is estimated.</span>
+
+<span class="sd">Basically, this extreme value analysis method, introduced by Hazen (1914), can </span>
+<span class="sd">be applied directly by using arithmetic paper. However, interpolation and </span>
+<span class="sd">extrapolation can be made more easily when the points fall on a straight line, </span>
+<span class="sd">which is rarely the case in an order-ranked plot of a physical variable on </span>
+<span class="sd">arithmetic paper. Therefore, almost invariably, the analysis is made by </span>
+<span class="sd">modifying the scale of the probability :math:`P`, and sometimes also that of </span>
+<span class="sd">the random variable :math:`x`, in such a way that the plot against :math:`x` of </span>
+<span class="sd">the anticipated cumulative distribution function :math:`P = F(x)` of the </span>
+<span class="sd">variable appears as a straight line. Typically, the Gumbel probability paper </span>
+<span class="sd">(Gumbel  1958) is used because  in many cases the distribution of the extremes, </span>
+<span class="sd">each selected from r events, asymptotically approaches the Gumbel distribution </span>
+<span class="sd">when :math:`r` goes to infinity.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">integrate</span> <span class="k">as</span> <span class="n">_integrate</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">_np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span> <span class="k">as</span> <span class="n">_st</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">_plt</span>
+
+<span class="n">_fact</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">factorial</span>
+
+<span class="n">docstringbase</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    Calculate extreme values based on yearly maxima using {0} plotting </span>
+<span class="s">    positions and a least square fit.</span>
+<span class="s">    </span>
+<span class="s">    This methodology differ from others in the module in the location of the </span>
+<span class="s">    probability plotting position.</span>
+<span class="s">    </span>
+<span class="s">    **Parameters**</span>
+<span class="s">    </span>
+<span class="s">    data : array_like</span>
+<span class="s">        Extreme values dataset.</span>
+<span class="s">    preconditioning : int or float</span>
+<span class="s">        You can choose to apply an exponent to the extreme data values before </span>
+<span class="s">        performing the Gumbel curve fit. Preconditioning can often improve the </span>
+<span class="s">        convergence of the curve fit and therefore improve the estimate T-year </span>
+<span class="s">        extreme wind speed. Default value is 1.</span>
+<span class="s">    </span>
+<span class="s">    **Attributes**</span>
+
+<span class="s">    results : dict</span>
+<span class="s">        A dictionary containing different parameters of the fit.</span>
+<span class="s">    c : float</span>
+<span class="s">        Value of the &#39;shape&#39; parameter. In the case of the Gumbel distribution</span>
+<span class="s">        this value is always 0.        </span>
+<span class="s">    loc : float</span>
+<span class="s">        Value of the &#39;localization&#39; parameter.</span>
+<span class="s">    scale : float</span>
+<span class="s">        Value os the &#39;scale&#39; parameter.</span>
+<span class="s">    distr : frozen ``scipy.stats.gumbel_r`` distribution</span>
+<span class="s">        Frozen distribution of type ``scipy.stats.gumbel_r`` with ``c``,</span>
+<span class="s">        ``loc`` and ``scale`` parameters equal to ``self.c``, ``self.loc``</span>
+<span class="s">        and ``self.scale``, respectively.</span>
+<span class="s">    </span>
+<span class="s">    **Methods**</span>
+
+<span class="s">    Methods to calculate the fit:</span>
+<span class="s">    </span>
+<span class="s">        {1}</span>
+<span class="s">    </span>
+<span class="s">    Methods to plot results:</span>
+
+<span class="s">        self.plot_summary()</span>
+<span class="s">    &quot;&quot;&quot;</span>
+
+<span class="k">class</span> <span class="nc">_GumbelBase</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preconditioning</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ppp</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">preconditioning</span> <span class="o">=</span> <span class="n">preconditioning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ppp</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    
+    <span class="k">def</span> <span class="nf">plot_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Summary plot including PP plot, QQ plot, empirical and fitted pdf and</span>
+<span class="sd">        return values and periods.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        4-panel plot including PP, QQ, pdf and return level plots</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># data to be used</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span>
+        <span class="n">extremes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;Values for return period from 2 to 100 years&#39;</span><span class="p">]</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">]</span>
+        <span class="n">slope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span>
+        <span class="n">how</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ppp</span>
+        <span class="n">xmin</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c"># figure settings</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">ax3</span><span class="p">)</span> <span class="o">=</span> <span class="n">_plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">how</span><span class="p">)</span>
+        
+        <span class="c"># Plot the fit</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">],</span> 
+                 <span class="p">[(</span><span class="n">xmin</span> <span class="o">-</span> <span class="n">offset</span><span class="p">)</span> <span class="o">/</span> <span class="n">slope</span><span class="p">,</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">offset</span><span class="p">)</span> <span class="o">/</span> <span class="n">slope</span><span class="p">],</span>
+                 <span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;0.25&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> 
+                    <span class="n">facecolor</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.7</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;0&#39;</span><span class="p">,</span> 
+                    <span class="n">s</span><span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">linewidths</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>   
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">&#39;$-ln(-ln(P))$&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;$Extreme\ values$&#39;</span><span class="p">)</span>
+        
+        <span class="c"># plot the return period</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">extremes</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;$T (years)$&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">&#39;$Extreme\ values$&#39;</span><span class="p">)</span>
+        
+        <span class="c"># plot the distribution</span>
+        <span class="n">_x</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.001</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.999</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>  
+                 <span class="n">normed</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">_x</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Fitted&#39;</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;k&#39;</span><span class="p">)</span>
+        <span class="n">desf</span> <span class="o">=</span> <span class="n">xmax</span> <span class="o">*</span> <span class="mf">0.1</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xmin</span> <span class="o">-</span> <span class="n">desf</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">+</span> <span class="n">desf</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">&#39;$Probability$&#39;</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;$Extreme\ values$&#39;</span><span class="p">)</span>
+    
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">ax3</span>
+        
+<div class="viewcode-block" id="Harris1996"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.Harris1996">[docs]</a><span class="k">class</span> <span class="nc">Harris1996</span><span class="p">(</span><span class="n">_GumbelBase</span><span class="p">):</span>
+    <span class="n">__doc__</span> <span class="o">=</span> <span class="n">docstringbase</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;Harris1996&#39;</span><span class="p">,</span> <span class="s">&#39;_ppp_harris1996&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">ppp</span> <span class="o">=</span> <span class="s">&quot;Harris1996&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ppp</span> <span class="o">=</span> <span class="n">ppp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ppp_harris1996</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;You should provide some data.&#39;</span><span class="p">)</span>
+        
+    
+    <span class="c">#ppp stands for probability plotting position</span>
+<div class="viewcode-block" id="Harris1996._ppp_harris1996"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.Harris1996._ppp_harris1996">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_harris1996</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Review of the traditional Gumbel extreme value method for analysing yearly</span>
+<span class="sd">        maximum windspeeds or similar data, with a view to improving the </span>
+<span class="sd">        process. An improved set of plotting positions based on the mean values of </span>
+<span class="sd">        the order statistics are derived, together with a means of obtaining the </span>
+<span class="sd">        standard deviation of each position. This enables a fitting procedure using </span>
+<span class="sd">        weighted least squares to be adopted, which gives results similar to the </span>
+<span class="sd">        traditional Lieblein BLUE process, but with the advantages that it does not </span>
+<span class="sd">        require tabulated coefficients, is available for any number of data up to at </span>
+<span class="sd">        least 50, and provides a quantitative measure of goodness of fit.</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Harris RI, (1996), &#39;Gumbel re-visited -- a new look at extreme value </span>
+<span class="sd">            statistics applied to wind speeds&#39;, Journal of Wind Engineering and </span>
+<span class="sd">            Industrial Aerodynamics, 59, 1-22. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">preconditioning</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span>
+        
+        <span class="n">ymean</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">ymean2</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">variance</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">integ_ymean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">NU</span><span class="p">):</span> 
+            <span class="k">return</span> <span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span> <span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="n">NU</span><span class="p">))</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">def</span> <span class="nf">integ_ymean2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">NU</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">((</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span> <span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="n">NU</span><span class="p">))</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">NU</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c"># calculation of ymean</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">_fact</span><span class="p">(</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">_fact</span><span class="p">(</span><span class="n">NU</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">_fact</span><span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="n">NU</span><span class="p">))</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">_integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">integ_ymean</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">NU</span><span class="p">))</span>
+            <span class="n">ymean</span><span class="p">[</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+            <span class="c"># calculation of ymean2</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">_integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">integ_ymean2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">NU</span><span class="p">))</span>
+            <span class="n">ymean2</span><span class="p">[</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+            <span class="c"># calculation of variance</span>
+            <span class="n">variance</span><span class="p">[</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">ymean2</span><span class="p">[</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ymean</span><span class="p">[</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+        <span class="c"># calculation of weights</span>
+        <span class="n">denominator</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">variance</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">NU</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">weight</span><span class="p">[</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">variance</span><span class="p">[</span><span class="n">NU</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">denominator</span>
+
+        <span class="c"># calculation of alpha</span>
+        <span class="c"># Numerator</span>
+        <span class="n">sum1</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="n">ymean</span> <span class="o">*</span> <span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">sum2</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="n">ymean</span><span class="p">)</span>
+        <span class="n">sum3</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="c"># Denominator</span>
+        <span class="n">sum4</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="n">data</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">sum5</span> <span class="o">=</span> <span class="n">sum3</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="c"># alpha</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="p">(</span><span class="n">sum1</span> <span class="o">-</span> <span class="n">sum2</span> <span class="o">*</span> <span class="n">sum3</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">sum4</span> <span class="o">-</span> <span class="n">sum5</span><span class="p">)</span>
+
+        <span class="c"># calculation of characteristic product</span>
+        <span class="n">pi_upper</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">sum3</span> <span class="o">-</span> <span class="n">sum2</span>
+
+        <span class="c"># calculation of the extreme values for the return periods between 2 and 100 years</span>
+        <span class="n">return_periods</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">100</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">v_ext_tmp</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">return_period</span><span class="p">))</span> <span class="o">+</span> <span class="n">pi_upper</span><span class="p">)</span> <span class="o">/</span> <span class="n">alpha</span> 
+                     <span class="k">for</span> <span class="n">return_period</span> <span class="ow">in</span> <span class="n">return_periods</span><span class="p">]</span>
+        <span class="n">v_ext</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">preconditioning</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">v_ext_tmp</span><span class="p">]</span>
+
+        <span class="c"># Calculation of the residual std dev</span>
+        <span class="n">deviation</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="p">((</span><span class="n">ymean</span> <span class="o">-</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">data</span> <span class="o">+</span> <span class="n">pi_upper</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">residual_stddev</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">deviation</span> <span class="o">*</span> <span class="n">N</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">2</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ymean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;weights&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;Values for return period from 2 to 100 years&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_ext</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pi_upper</span> <span class="o">/</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;characteristic product&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pi_upper</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;alpha&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;residual standard deviation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">residual_stddev</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span>     <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distr</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">gumbel_r</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> 
+                                   <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+    
+</div></div>
+<div class="viewcode-block" id="Lieblein"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.Lieblein">[docs]</a><span class="k">class</span> <span class="nc">Lieblein</span><span class="p">(</span><span class="n">_GumbelBase</span><span class="p">):</span>
+    <span class="n">__doc__</span> <span class="o">=</span> <span class="n">docstringbase</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;Lieblein&#39;</span><span class="p">,</span> <span class="s">&#39;_ppp_lieblein&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">ppp</span> <span class="o">=</span> <span class="s">&quot;Lieblein&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ppp</span> <span class="o">=</span> <span class="n">ppp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ppp_lieblein</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;You should provide some data.&#39;</span><span class="p">)</span>    
+    
+    <span class="c">#ppp stands for probability plotting position</span>
+<div class="viewcode-block" id="Lieblein._ppp_lieblein"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.Lieblein._ppp_lieblein">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_lieblein</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Lieblein-BLUE (Best Linear Unbiased Estimator) to obtain extreme values</span>
+<span class="sd">        using a Type I (Gumbel) extreme value distribution.</span>
+<span class="sd">        </span>
+<span class="sd">        It approaches the calculation of extremes using a very classical </span>
+<span class="sd">        methodology provided by Julius Lieblein. It exists just to check how </span>
+<span class="sd">        several consultants made the calculation of wind speed extremes in the wind </span>
+<span class="sd">        energy industry.</span>
+<span class="sd">        </span>
+<span class="sd">        It calculates extremes using an adjustment of Gumbel distribution using </span>
+<span class="sd">        least squares fit and considering several probability-plotting positions </span>
+<span class="sd">        used in the wild.</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Lieblein J, (1974), &#39;Efficient methods of Extreme-Value Methodology&#39;, </span>
+<span class="sd">            NBSIR 74-602, National Bureau of Standards, U.S. Department of Commerce.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># coefficients for sample below or equal to 16 elements</span>
+        <span class="n">ai</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;n = 02&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.916373</span><span class="p">,</span> <span class="mf">0.083627</span><span class="p">],</span>
+            <span class="s">&#39;n = 03&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.656320</span><span class="p">,</span> <span class="mf">0.255714</span><span class="p">,</span> <span class="mf">0.087966</span><span class="p">],</span>
+            <span class="s">&#39;n = 04&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.510998</span><span class="p">,</span> <span class="mf">0.263943</span><span class="p">,</span> <span class="mf">0.153680</span><span class="p">,</span> <span class="mf">0.071380</span><span class="p">],</span>
+            <span class="s">&#39;n = 05&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.418934</span><span class="p">,</span> <span class="mf">0.246282</span><span class="p">,</span> <span class="mf">0.167609</span><span class="p">,</span> <span class="mf">0.108824</span><span class="p">,</span> 
+                       <span class="mf">0.058350</span><span class="p">],</span>
+            <span class="s">&#39;n = 06&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.355450</span><span class="p">,</span> <span class="mf">0.225488</span><span class="p">,</span> <span class="mf">0.165620</span><span class="p">,</span> <span class="mf">0.121054</span><span class="p">,</span> 
+                       <span class="mf">0.083522</span><span class="p">,</span> <span class="mf">0.048867</span><span class="p">],</span>
+            <span class="s">&#39;n = 07&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.309008</span><span class="p">,</span> <span class="mf">0.206260</span><span class="p">,</span> <span class="mf">0.158590</span><span class="p">,</span> <span class="mf">0.123223</span><span class="p">,</span> 
+                       <span class="mf">0.093747</span><span class="p">,</span> <span class="mf">0.067331</span><span class="p">,</span> <span class="mf">0.041841</span><span class="p">],</span>
+            <span class="s">&#39;n = 08&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.273535</span><span class="p">,</span> <span class="mf">0.189428</span><span class="p">,</span> <span class="mf">0.150200</span><span class="p">,</span> <span class="mf">0.121174</span><span class="p">,</span> 
+                       <span class="mf">0.097142</span><span class="p">,</span> <span class="mf">0.075904</span><span class="p">,</span> <span class="mf">0.056132</span><span class="p">,</span> <span class="mf">0.036485</span><span class="p">],</span>
+            <span class="s">&#39;n = 09&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.245539</span><span class="p">,</span> <span class="mf">0.174882</span><span class="p">,</span> <span class="mf">0.141789</span><span class="p">,</span> <span class="mf">0.117357</span><span class="p">,</span> 
+                       <span class="mf">0.097218</span><span class="p">,</span> <span class="mf">0.079569</span><span class="p">,</span> <span class="mf">0.063400</span><span class="p">,</span> <span class="mf">0.047957</span><span class="p">,</span> 
+                       <span class="mf">0.032291</span><span class="p">],</span>
+            <span class="s">&#39;n = 10&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.222867</span><span class="p">,</span> <span class="mf">0.162308</span><span class="p">,</span> <span class="mf">0.133845</span><span class="p">,</span> <span class="mf">0.112868</span><span class="p">,</span> 
+                       <span class="mf">0.095636</span><span class="p">,</span> <span class="mf">0.080618</span><span class="p">,</span> <span class="mf">0.066988</span><span class="p">,</span> <span class="mf">0.054193</span><span class="p">,</span> 
+                       <span class="mf">0.041748</span><span class="p">,</span> <span class="mf">0.028929</span><span class="p">],</span>
+            <span class="s">&#39;n = 11&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.204123</span><span class="p">,</span> <span class="mf">0.151384</span><span class="p">,</span> <span class="mf">0.126522</span><span class="p">,</span> <span class="mf">0.108226</span><span class="p">,</span> 
+                       <span class="mf">0.093234</span><span class="p">,</span> <span class="mf">0.080222</span><span class="p">,</span> <span class="mf">0.068485</span><span class="p">,</span> <span class="mf">0.057578</span><span class="p">,</span> 
+                       <span class="mf">0.047159</span><span class="p">,</span> <span class="mf">0.036886</span><span class="p">,</span> <span class="mf">0.026180</span><span class="p">],</span>
+            <span class="s">&#39;n = 12&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.188361</span><span class="p">,</span> <span class="mf">0.141833</span><span class="p">,</span> <span class="mf">0.119838</span><span class="p">,</span> <span class="mf">0.103673</span><span class="p">,</span> 
+                       <span class="mf">0.090455</span><span class="p">,</span> <span class="mf">0.079018</span><span class="p">,</span> <span class="mf">0.068747</span><span class="p">,</span> <span class="mf">0.059266</span><span class="p">,</span> 
+                       <span class="mf">0.050303</span><span class="p">,</span> <span class="mf">0.041628</span><span class="p">,</span> <span class="mf">0.032984</span><span class="p">,</span> <span class="mf">0.023894</span><span class="p">],</span>
+            <span class="s">&#39;n = 13&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.174916</span><span class="p">,</span> <span class="mf">0.133422</span><span class="p">,</span> <span class="mf">0.113759</span><span class="p">,</span> <span class="mf">0.099323</span><span class="p">,</span> 
+                       <span class="mf">0.087540</span><span class="p">,</span> <span class="mf">0.077368</span><span class="p">,</span> <span class="mf">0.068264</span><span class="p">,</span> <span class="mf">0.059900</span><span class="p">,</span> 
+                       <span class="mf">0.052047</span><span class="p">,</span> <span class="mf">0.044528</span><span class="p">,</span> <span class="mf">0.037177</span><span class="p">,</span> <span class="mf">0.029790</span><span class="p">,</span> 
+                       <span class="mf">0.021965</span><span class="p">],</span>
+            <span class="s">&#39;n = 14&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.163309</span><span class="p">,</span> <span class="mf">0.125966</span><span class="p">,</span> <span class="mf">0.108230</span><span class="p">,</span> <span class="mf">0.095223</span><span class="p">,</span>
+                       <span class="mf">0.084619</span><span class="p">,</span> <span class="mf">0.075484</span><span class="p">,</span> <span class="mf">0.067331</span><span class="p">,</span> <span class="mf">0.059866</span><span class="p">,</span>
+                       <span class="mf">0.052891</span><span class="p">,</span> <span class="mf">0.046260</span><span class="p">,</span> <span class="mf">0.039847</span><span class="p">,</span> <span class="mf">0.033526</span><span class="p">,</span>
+                       <span class="mf">0.027131</span><span class="p">,</span> <span class="mf">0.020317</span><span class="p">],</span>
+            <span class="s">&#39;n = 15&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.153184</span><span class="p">,</span> <span class="mf">0.119314</span><span class="p">,</span> <span class="mf">0.103196</span><span class="p">,</span> <span class="mf">0.091384</span><span class="p">,</span> 
+                       <span class="mf">0.081767</span><span class="p">,</span> <span class="mf">0.073495</span><span class="p">,</span> <span class="mf">0.066128</span><span class="p">,</span> <span class="mf">0.059401</span><span class="p">,</span>
+                       <span class="mf">0.053140</span><span class="p">,</span> <span class="mf">0.047217</span><span class="p">,</span> <span class="mf">0.041529</span><span class="p">,</span> <span class="mf">0.035984</span><span class="p">,</span>
+                       <span class="mf">0.030484</span><span class="p">,</span> <span class="mf">0.024887</span><span class="p">,</span> <span class="mf">0.018894</span><span class="p">],</span>
+            <span class="s">&#39;n = 16&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.144271</span><span class="p">,</span> <span class="mf">0.113346</span><span class="p">,</span> <span class="mf">0.098600</span><span class="p">,</span> <span class="mf">0.087801</span><span class="p">,</span>
+                       <span class="mf">0.079021</span><span class="p">,</span> <span class="mf">0.071476</span><span class="p">,</span> <span class="mf">0.064771</span><span class="p">,</span> <span class="mf">0.058660</span><span class="p">,</span>
+                       <span class="mf">0.052989</span><span class="p">,</span> <span class="mf">0.047646</span><span class="p">,</span> <span class="mf">0.042539</span><span class="p">,</span> <span class="mf">0.037597</span><span class="p">,</span>
+                       <span class="mf">0.032748</span><span class="p">,</span> <span class="mf">0.027911</span><span class="p">,</span> <span class="mf">0.022969</span><span class="p">,</span> <span class="mf">0.017653</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">bi</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;n = 02&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.721348</span><span class="p">,</span> <span class="mf">0.721348</span><span class="p">],</span>
+            <span class="s">&#39;n = 03&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.630541</span><span class="p">,</span> <span class="mf">0.255816</span><span class="p">,</span> <span class="mf">0.374725</span><span class="p">],</span>
+            <span class="s">&#39;n = 04&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.558619</span><span class="p">,</span> <span class="mf">0.085903</span><span class="p">,</span> <span class="mf">0.223919</span><span class="p">,</span> <span class="mf">0.248797</span><span class="p">],</span>
+            <span class="s">&#39;n = 05&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.503127</span><span class="p">,</span> <span class="mf">0.006534</span><span class="p">,</span> <span class="mf">0.130455</span><span class="p">,</span> <span class="mf">0.181656</span><span class="p">,</span> 
+                       <span class="mf">0.184483</span><span class="p">],</span>
+            <span class="s">&#39;n = 06&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.459273</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.035992</span><span class="p">,</span> <span class="mf">0.073199</span><span class="p">,</span> <span class="mf">0.126724</span><span class="p">,</span>
+                       <span class="mf">0.149534</span><span class="p">,</span> <span class="mf">0.145807</span><span class="p">],</span>
+            <span class="s">&#39;n = 07&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.423700</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.060698</span><span class="p">,</span> <span class="mf">0.036192</span><span class="p">,</span> <span class="mf">0.087339</span><span class="p">,</span>
+                       <span class="mf">0.114868</span><span class="p">,</span> <span class="mf">0.125859</span><span class="p">,</span> <span class="mf">0.120141</span><span class="p">],</span>
+            <span class="s">&#39;n = 08&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.394187</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.075767</span><span class="p">,</span> <span class="mf">0.011124</span><span class="p">,</span> <span class="mf">0.058928</span><span class="p">,</span>
+                       <span class="mf">0.087162</span><span class="p">,</span> <span class="mf">0.102728</span><span class="p">,</span> <span class="mf">0.108074</span><span class="p">,</span> <span class="mf">0.101936</span><span class="p">],</span>
+            <span class="s">&#39;n = 09&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.369242</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.085203</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.006486</span><span class="p">,</span> <span class="mf">0.037977</span><span class="p">,</span>
+                       <span class="mf">0.065574</span><span class="p">,</span> <span class="mf">0.082654</span><span class="p">,</span> <span class="mf">0.091965</span><span class="p">,</span> <span class="mf">0.094369</span><span class="p">,</span>
+                       <span class="mf">0.088391</span><span class="p">],</span>
+            <span class="s">&#39;n = 10&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.347830</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.091158</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.019210</span><span class="p">,</span> <span class="mf">0.022179</span><span class="p">,</span>
+                       <span class="mf">0.048671</span><span class="p">,</span> <span class="mf">0.066064</span><span class="p">,</span> <span class="mf">0.077021</span><span class="p">,</span> <span class="mf">0.082771</span><span class="p">,</span>
+                       <span class="mf">0.083552</span><span class="p">,</span> <span class="mf">0.077940</span><span class="p">],</span>
+            <span class="s">&#39;n = 11&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.329210</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.094869</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.028604</span><span class="p">,</span> <span class="mf">0.010032</span><span class="p">,</span>
+                       <span class="mf">0.035284</span><span class="p">,</span> <span class="mf">0.052464</span><span class="p">,</span> <span class="mf">0.064071</span><span class="p">,</span> <span class="mf">0.071381</span><span class="p">,</span>
+                       <span class="mf">0.074977</span><span class="p">,</span> <span class="mf">0.074830</span><span class="p">,</span> <span class="mf">0.069644</span><span class="p">],</span>
+            <span class="s">&#39;n = 12&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.312840</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.097086</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.035655</span><span class="p">,</span> <span class="mf">0.000534</span><span class="p">,</span>
+                       <span class="mf">0.024548</span><span class="p">,</span> <span class="mf">0.041278</span><span class="p">,</span> <span class="mf">0.053053</span><span class="p">,</span> <span class="mf">0.061112</span><span class="p">,</span>
+                       <span class="mf">0.066122</span><span class="p">,</span> <span class="mf">0.068357</span><span class="p">,</span> <span class="mf">0.067671</span><span class="p">,</span> <span class="mf">0.062906</span><span class="p">],</span>
+            <span class="s">&#39;n = 13&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.298313</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.098284</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.041013</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.006997</span><span class="p">,</span> 
+                       <span class="mf">0.015836</span><span class="p">,</span> <span class="mf">0.032014</span><span class="p">,</span> <span class="mf">0.043710</span><span class="p">,</span> <span class="mf">0.052101</span><span class="p">,</span> 
+                       <span class="mf">0.057862</span><span class="p">,</span> <span class="mf">0.061355</span><span class="p">,</span> <span class="mf">0.062699</span><span class="p">,</span> <span class="mf">0.061699</span><span class="p">,</span> 
+                       <span class="mf">0.057330</span><span class="p">],</span>
+            <span class="s">&#39;n = 14&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.285316</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.098775</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.045120</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.013039</span><span class="p">,</span> 
+                       <span class="mf">0.008690</span><span class="p">,</span> <span class="mf">0.024282</span><span class="p">,</span> <span class="mf">0.035768</span><span class="p">,</span> <span class="mf">0.044262</span><span class="p">,</span> 
+                       <span class="mf">0.050418</span><span class="p">,</span> <span class="mf">0.054624</span><span class="p">,</span> <span class="mf">0.057083</span><span class="p">,</span> <span class="mf">0.057829</span><span class="p">,</span> 
+                       <span class="mf">0.056652</span><span class="p">,</span> <span class="mf">0.052642</span><span class="p">],</span>
+            <span class="s">&#39;n = 15&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.273606</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.098768</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.048285</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.017934</span><span class="p">,</span>
+                       <span class="mf">0.002773</span><span class="p">,</span> <span class="mf">0.017779</span><span class="p">,</span> <span class="mf">0.028988</span><span class="p">,</span> <span class="mf">0.037452</span><span class="p">,</span>
+                       <span class="mf">0.043798</span><span class="p">,</span> <span class="mf">0.048415</span><span class="p">,</span> <span class="mf">0.051534</span><span class="p">,</span> <span class="mf">0.053267</span><span class="p">,</span>
+                       <span class="mf">0.053603</span><span class="p">,</span> <span class="mf">0.052334</span><span class="p">,</span> <span class="mf">0.048648</span><span class="p">],</span>
+            <span class="s">&#39;n = 16&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.262990</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.098406</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.050731</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.021933</span><span class="p">,</span>
+                       <span class="o">-</span><span class="mf">0.002167</span><span class="p">,</span> <span class="mf">0.012270</span><span class="p">,</span> <span class="mf">0.023168</span><span class="p">,</span> <span class="mf">0.031528</span><span class="p">,</span> 
+                       <span class="mf">0.037939</span><span class="p">,</span> <span class="mf">0.042787</span><span class="p">,</span> <span class="mf">0.046308</span><span class="p">,</span> <span class="mf">0.048646</span><span class="p">,</span> 
+                       <span class="mf">0.049860</span><span class="p">,</span> <span class="mf">0.049912</span><span class="p">,</span> <span class="mf">0.048602</span><span class="p">,</span> <span class="mf">0.045207</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">preconditioning</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span>
+        
+        <span class="c"># hyp and coeffs are used to calculate values for samples higher than 16 elements</span>
+        <span class="c"># Hypergeometric distribution function</span>
+        <span class="k">def</span> <span class="nf">hyp</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">t</span><span class="p">):</span>
+            <span class="n">bin1</span> <span class="o">=</span> <span class="n">_fact</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">_fact</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">_fact</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">t</span><span class="p">))</span>
+            <span class="n">bin2</span> <span class="o">=</span> <span class="n">_fact</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">_fact</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">_fact</span><span class="p">((</span><span class="n">n</span><span class="o">-</span><span class="n">i</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="n">t</span><span class="p">)))</span>
+            <span class="n">bin3</span> <span class="o">=</span> <span class="n">_fact</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">_fact</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">_fact</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">m</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">bin1</span> <span class="o">*</span> <span class="n">bin2</span> <span class="o">/</span> <span class="n">bin3</span>
+
+        <span class="c"># Coefficients</span>
+        <span class="k">def</span> <span class="nf">coeffs</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+            <span class="n">aip</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">bip</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">a</span> <span class="o">+=</span> <span class="n">ai</span><span class="p">[</span><span class="s">&#39;n = {:02}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">m</span><span class="p">)][</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="p">((</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">hyp</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">b</span> <span class="o">+=</span> <span class="n">bi</span><span class="p">[</span><span class="s">&#39;n = {:02}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">m</span><span class="p">)][</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="p">((</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">hyp</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="n">aip</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="n">bip</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">aip</span><span class="p">,</span> <span class="n">bip</span>
+        
+        <span class="k">def</span> <span class="nf">distr_params</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">N</span> <span class="o">&lt;=</span> <span class="mi">16</span><span class="p">:</span>
+                <span class="n">mu</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ai</span><span class="p">[</span><span class="s">&#39;n = {:02}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span>    <span class="c">#parameter u in the paper</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bi</span><span class="p">[</span><span class="s">&#39;n = {:02}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span> <span class="c">#parameter b in the paper</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">aip</span><span class="p">,</span> <span class="n">bip</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+                <span class="n">mu</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aip</span><span class="p">)</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bip</span><span class="p">)</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span>
+
+        <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">distr_params</span><span class="p">()</span>
+        <span class="n">return_period</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">100</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">P</span><span class="p">))</span>
+        <span class="n">vref</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">return_period</span><span class="p">))</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">preconditioning</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;Values for return period from 2 to 100 years&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vref</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span>     <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distr</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">gumbel_r</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> 
+                                   <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+    
+</div></div>
+<div class="viewcode-block" id="PPPLiterature"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature">[docs]</a><span class="k">class</span> <span class="nc">PPPLiterature</span><span class="p">(</span><span class="n">_GumbelBase</span><span class="p">):</span>
+    <span class="n">__doc__</span> <span class="o">=</span> <span class="n">docstringbase</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;several&#39;</span><span class="p">,</span> <span class="s">&quot;&quot;&quot;_ppp_adamowski</span>
+<span class="s">    </span>
+<span class="s">        _ppp_beard</span>
+
+<span class="s">        _ppp_blom</span>
+
+<span class="s">        _ppp_gringorten</span>
+
+<span class="s">        _ppp_hazen</span>
+
+<span class="s">        _ppp_hirsch</span>
+
+<span class="s">        _ppp_iec56</span>
+
+<span class="s">        _ppp_landwehr</span>
+
+<span class="s">        _ppp_laplace</span>
+
+<span class="s">        _ppp_mm</span>
+
+<span class="s">        _ppp_tukey</span>
+
+<span class="s">        _ppp_weibull&quot;&quot;&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">ppp</span> <span class="o">=</span> <span class="s">&quot;Weibull&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ppp</span> <span class="o">=</span> <span class="n">ppp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ppp</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;You should provide some data.&#39;</span><span class="p">)</span>    
+    
+    <span class="c">#ppp stands for probability plotting position</span>
+    <span class="k">def</span> <span class="nf">_calculate_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">how</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">preconditioning</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span>
+        
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Adamowski&#39;</span><span class="p">:</span>
+            <span class="c"># see De, M., 2000. A new unbiased plotting position formula for gumbel distribution. </span>
+            <span class="c">#     Stochastic Envir. Res. Risk Asses., 14: 1-7.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.25</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Beard&#39;</span><span class="p">:</span>
+            <span class="c"># see De, M., 2000. A new unbiased plotting position formula for gumbel distribution. </span>
+            <span class="c">#     Stochastic Envir. Res. Risk Asses., 14: 1-7.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.31</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mf">0.38</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Blom&#39;</span><span class="p">:</span>
+            <span class="c"># see Adeboye, O.B. and M.O. Alatise, 2007. Performance of probability distributions and plotting </span>
+            <span class="c">#      positions in estimating the flood of River Osun at Apoje Sub-basin, Nigeria. Agric. Eng. Int.: CIGR J., Vol. 9. </span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.375</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mf">0.25</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Chegodayev&#39;</span><span class="p">:</span>
+            <span class="c"># see De, M., 2000. A new unbiased plotting position formula for gumbel distribution. </span>
+            <span class="c">#     Stochastic Envir. Res. Risk Asses., 14: 1-7.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.3</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mf">0.4</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Cunnane&#39;</span><span class="p">:</span>
+            <span class="c"># see Cunnane, C., 1978. Unbiased plotting positions: A review. J. Hydrol., 37: 205-222.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.4</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mf">0.2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Gringorten&#39;</span><span class="p">:</span>
+            <span class="c"># see Adeboye, O.B. and M.O. Alatise, 2007. Performance of probability distributions and plotting </span>
+            <span class="c">#     positions in estimating the flood of River Osun at Apoje Sub-basin, Nigeria. Agric. Eng. Int.: CIGR J., Vol. 9. </span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.44</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mf">0.12</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Hazen&#39;</span><span class="p">:</span>
+            <span class="c"># see Adeboye, O.B. and M.O. Alatise, 2007. Performance of probability distributions and plotting </span>
+            <span class="c">#     positions in estimating the flood of River Osun at Apoje Sub-basin, Nigeria. Agric. Eng. Int.: CIGR J., Vol. 9. </span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Hirsch&#39;</span><span class="p">:</span>
+            <span class="c"># see Jay, R.L., O. Kalman and M. Jenkins, 1998. Integrated planning and management for Urban water </span>
+            <span class="c">#     supplies considering multi uncertainties. Technical Report, </span>
+            <span class="c">#     Department of Civil and Environmental Engineering, Universities of California.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;IEC56&#39;</span><span class="p">:</span>
+            <span class="c"># see Forthegill, J.C., 1990. Estimating the cumulative probability of failure data points to be </span>
+            <span class="c">#     plotted on weibull and other probability paper. Electr. Insulation Transact., 25: 489-492.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mf">0.25</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Landwehr&#39;</span><span class="p">:</span>
+            <span class="c"># see Makkonen, L., 2008. Problem in the extreme value analysis. Structural Safety, 30: 405-419.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.35</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Laplace&#39;</span><span class="p">:</span>
+            <span class="c"># see Jay, R.L., O. Kalman and M. Jenkins, 1998. Integrated planning and management for Urban </span>
+            <span class="c">#     water supplies considering multi uncertainties. Technical Report, </span>
+            <span class="c">#     Department of Civil and Environmental Engineering, Universities of California.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;McClung and Mears&#39;</span><span class="p">:</span>
+            <span class="c"># see Makkonen, L., 2008. Problem in the extreme value analysis. Structural Safety, 30: 405-419.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.4</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Tukey&#39;</span><span class="p">:</span>
+            <span class="c"># see Makkonen, L., 2008. Problem in the extreme value analysis. Structural Safety, 30: 405-419.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">how</span> <span class="o">==</span> <span class="s">&#39;Weibull&#39;</span><span class="p">:</span>
+            <span class="c"># see Hynman, R.J. and Y. Fan, 1996. Sample quantiles in statistical packages. Am. Stat., 50: 361-365.</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">Y</span> <span class="o">=</span> <span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">P</span><span class="p">))</span>
+        <span class="n">slope</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">R2</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+        <span class="c">#fit = slope * Y + offset</span>
+        <span class="n">return_period</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+        <span class="n">vref</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">return_period</span><span class="p">))</span> <span class="o">+</span> <span class="n">offset</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">preconditioning</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;Y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;Values for return period from 2 to 100 years&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vref</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;R2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">R2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">slope</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span>     <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;offset&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s">&#39;slope&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distr</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">gumbel_r</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> 
+                                   <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="PPPLiterature._ppp_adamowski"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_adamowski">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_adamowski</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Adamowski method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+<span class="sd">        </span>
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.25}{N + 0.5}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            De, M., 2000. A new unbiased plotting position formula for gumbel </span>
+<span class="sd">            distribution. Stochastic Envir. Res. Risk Asses., 14: 1-7.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Adamowski&quot;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_beard"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_beard">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_beard</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Beard method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.31}{N + 0.38}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            De, M., 2000. A new unbiased plotting position formula for gumbel </span>
+<span class="sd">            distribution. Stochastic Envir. Res. Risk Asses., 14: 1-7.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Beard&quot;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_blom"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_blom">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_blom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Blom method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.375}{N + 0.25}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            De, M., 2000. A new unbiased plotting position formula for gumbel </span>
+<span class="sd">            distribution. Stochastic Envir. Res. Risk Asses., 14: 1-7.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Blom&quot;</span><span class="p">)</span>
+        </div>
+    <span class="k">def</span> <span class="nf">_ppp_chegodayev</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Chegodayev method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.3}{N + 0.4}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            De, M., 2000. A new unbiased plotting position formula for gumbel </span>
+<span class="sd">            distribution. Stochastic Envir. Res. Risk Asses., 14: 1-7.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Chegodayev&quot;</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_ppp_cunnane</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Cunnane method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">                </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.4}{N + 0.2}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Cunnane, C., 1978. Unbiased plotting positions: A review. </span>
+<span class="sd">            J. Hydrol., 37: 205-222.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Cunnane&quot;</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="PPPLiterature._ppp_gringorten"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_gringorten">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_gringorten</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Gringorten method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.44}{N + 0.12}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Adeboye, O.B. and M.O. Alatise, 2007. Performance of probability </span>
+<span class="sd">            distributions and plotting positions in estimating the flood of </span>
+<span class="sd">            River Osun at Apoje Sub-basin, Nigeria. Agric. Eng. Int.: </span>
+<span class="sd">            CIGR J., Vol. 9.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Gringorten&quot;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_hazen"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_hazen">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_hazen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Hazen method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.5}{N}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Adeboye, O.B. and M.O. Alatise, 2007. Performance of probability </span>
+<span class="sd">            distributions and plotting positions in estimating the flood of </span>
+<span class="sd">            River Osun at Apoje Sub-basin, Nigeria. Agric. Eng. Int.: </span>
+<span class="sd">            CIGR J., Vol. 9.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Hazen&quot;</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_hirsch"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_hirsch">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_hirsch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Hirsch method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) + 0.5}{N + 1}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Jay, R.L., O. Kalman and M. Jenkins, 1998. Integrated planning and </span>
+<span class="sd">            management for Urban water supplies considering multi uncertainties. </span>
+<span class="sd">            Technical Report, Department of Civil and Environmental Engineering, </span>
+<span class="sd">            Universities of California.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Hirsch&quot;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_iec56"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_iec56">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_iec56</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the IEC56 method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.5}{N + 0.25}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Forthegill, J.C., 1990. Estimating the cumulative probability of </span>
+<span class="sd">            failure data points to be plotted on weibull and other probability </span>
+<span class="sd">            paper. Electr. Insulation Transact., 25: 489-492.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;IEC56&quot;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_landwehr"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_landwehr">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_landwehr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Landwehr method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.35}{N}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Makkonen, L., 2008. Problem in the extreme value analysis. </span>
+<span class="sd">            Structural Safety, 30: 405-419.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Landwehr&quot;</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_laplace"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_laplace">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_laplace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Laplace method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) + 1}{N + 2}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Jay, R.L., O. Kalman and M. Jenkins, 1998. Integrated planning and </span>
+<span class="sd">            management for Urban water supplies considering multi uncertainties. </span>
+<span class="sd">            Technical Report, Department of Civil and Environmental Engineering, </span>
+<span class="sd">            Universities of California.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Laplace&quot;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_mm"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_mm">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_mm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the McClung and Mears method available </span>
+<span class="sd">        for the probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 0.4}{N}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Makkonen, L., 2008. Problem in the extreme value analysis. </span>
+<span class="sd">            Structural Safety, 30: 405-419.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;McClung and Mears&quot;</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_tukey"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_tukey">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_tukey</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Tukey method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) - 1/3}{N + 1/3}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Makkonen, L., 2008. Problem in the extreme value analysis. </span>
+<span class="sd">            Structural Safety, 30: 405-419.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Tukey&quot;</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="PPPLiterature._ppp_weibull"><a class="viewcode-back" href="../../../Module models.engineering.html#skextremes.models.engineering.PPPLiterature._ppp_weibull">[docs]</a>    <span class="k">def</span> <span class="nf">_ppp_weibull</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform the calculations using the Weibull method available for the </span>
+<span class="sd">        probability positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Probability positions are defined as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">        </span>
+<span class="sd">           P = \\frac{(N + 1) + 1}{N + 1}</span>
+<span class="sd">        </span>
+<span class="sd">        **References**</span>
+<span class="sd">        </span>
+<span class="sd">            Hynman, R.J. and Y. Fan, 1996. Sample quantiles in statistical </span>
+<span class="sd">            packages. Am. Stat., 50: 361-365.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span><span class="n">how</span> <span class="o">=</span> <span class="s">&quot;Weibull&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, kikocorreoso.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

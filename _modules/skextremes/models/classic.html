@@ -1,0 +1,844 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skextremes.models.classic &mdash; scikit-extremes 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="scikit-extremes 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../../../index.html" class="icon icon-home"> scikit-extremes
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Small EVT introduction.html">Quick and incomplete Extreme Value Theory introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../Small EVT introduction.html#fields-of-interest">Fields of interest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Small EVT introduction.html#a-brief-history-of-extreme-value-theory">A brief history of Extreme Value Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Small EVT introduction.html#general-approaches-to-estimate-extreme-values">General approaches to estimate extreme values</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../Small EVT introduction.html#block-maxima-generalised-extreme-value-gev-and-gumbel-distribution">Block-Maxima + Generalised Extreme Value (GEV) and Gumbel distribution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Small EVT introduction.html#peak-over-threshold-pot-generalised-pareto-gp-distribution">Peak-Over-Threshold (POT) + Generalised Pareto (GP) distribution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Small EVT introduction.html#references-used-to-prepare-this-section">References used to prepare this section</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../User guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Module utils.html">skextremes.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Module models.wind.html">skextremes.models.wind</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Module models.engineering.html">skextremes.models.engineering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Module models.classic.html">skextremes.models.classic</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">scikit-extremes</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skextremes.models.classic</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for skextremes.models.classic</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module containing classical generalistic models</span>
+
+<span class="sd">Gumbel:</span>
+<span class="sd">    To be used applying the Block Maxima approach</span>
+<span class="sd">    </span>
+<span class="sd">Generalised extreme value distribution (GEV):</span>
+<span class="sd">    To be used applying the Block Maxima approach</span>
+<span class="sd">    </span>
+<span class="sd">Generalised Pareto Distribution (GPD):</span>
+<span class="sd">    To be used applying the Peak-Over-Threshold approach</span>
+<span class="sd">    TODO</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span> <span class="k">as</span> <span class="n">_st</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">optimize</span> <span class="k">as</span> <span class="n">_op</span>
+<span class="kn">from</span> <span class="nn">lmoments3</span> <span class="kn">import</span> <span class="n">distr</span> <span class="k">as</span> <span class="n">_lmdistr</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">_np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">_plt</span>
+<span class="kn">import</span> <span class="nn">numdifftools</span> <span class="kn">as</span> <span class="nn">_ndt</span>
+
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">bootstrap_ci</span> <span class="k">as</span> <span class="n">_bsci</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">gev_momfit</span> <span class="k">as</span> <span class="n">_gev_momfit</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">gum_momfit</span> <span class="k">as</span> <span class="n">_gum_momfit</span>
+
+<span class="k">class</span> <span class="nc">_Base</span><span class="p">:</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">fit_method</span> <span class="o">=</span> <span class="s">&#39;mle&#39;</span><span class="p">,</span> 
+                       <span class="n">ci</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ci_method</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+                       <span class="n">return_periods</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">frec</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>        
+        <span class="c"># Data to be used for the fit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        
+        <span class="c"># Fit method to be used</span>
+        <span class="k">if</span> <span class="n">fit_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;mle&#39;</span><span class="p">,</span> <span class="s">&#39;mom&#39;</span><span class="p">,</span> <span class="s">&#39;lmoments&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="o">=</span> <span class="n">fit_method</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="p">(</span><span class="s">&quot;fit methods accepted are:</span><span class="se">\n</span><span class="s">&quot;</span>
+                 <span class="s">&quot;    mle (Maximum Likelihood Estimation)</span><span class="se">\n</span><span class="s">&quot;</span>
+                 <span class="s">&quot;    lmoments</span><span class="se">\n</span><span class="s">&quot;</span>
+                 <span class="s">&quot;    mom (method of moments)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+        
+        <span class="c"># Calculate shape, location, scale and a frozen distribution</span>
+        <span class="c"># with the calculated estimators (shape, location, scale)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">()</span>
+        
+        <span class="c"># Check for calculations of return periods and return values.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frec</span> <span class="o">=</span> <span class="n">frec</span>
+        <span class="k">if</span> <span class="n">return_periods</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">return_periods</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">return_periods</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">return_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frec</span> <span class="o">/</span> 
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">return_periods</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">return_periods</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">return_values</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        
+        <span class="c"># Check for the estimation of confidence intervals</span>
+        <span class="k">if</span> <span class="n">ci</span>  <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">ci</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">=</span> <span class="n">ci</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;ci should be a value in the interval 0 &lt; ci &lt; 1&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ci_method</span> <span class="ow">and</span>
+                <span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;mle&#39;</span> <span class="ow">and</span> 
+                <span class="n">ci_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;delta&#39;</span><span class="p">,</span> <span class="s">&#39;bootstrap&#39;</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ci_method</span> <span class="o">=</span> <span class="n">ci_method</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ci</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">ci_method</span> <span class="ow">and</span>
+                <span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;lmoments&#39;</span> <span class="ow">and</span> 
+                <span class="n">ci_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;bootstrap&#39;</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ci_method</span> <span class="o">=</span> <span class="n">ci_method</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ci</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">ci_method</span> <span class="ow">and</span>
+                <span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;mom&#39;</span> <span class="ow">and</span> 
+                <span class="n">ci_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;bootstrap&#39;</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ci_method</span> <span class="o">=</span> <span class="n">ci_method</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ci</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="p">(</span><span class="s">&quot;You should provide a valid value for the confidence</span><span class="se">\n</span><span class="s">&quot;</span>
+                 <span class="s">&quot;interval calculation, &#39;ci_method&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">))</span>
+         
+    
+    <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># This is a base class and shouldn&#39;t be used as it. </span>
+        <span class="c"># This method should be implemented in the subclass.</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;Subclasses should implement this!&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_ci</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># This is a base class and shouldn&#39;t be used as it. </span>
+        <span class="c"># This method should be implemented in the subclass.</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;Subclasses should implement this!&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">):</span>
+        <span class="c"># A shortcut to the frozen distribution pdf as provided by scipy.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Probability density function at x of the given frozen RV.</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">        x : array_like</span>
+<span class="sd">            quantiles</span>
+<span class="sd">            </span>
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        pdf : ndarray</span>
+<span class="sd">            Probability density function evaluated at x</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">cdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">):</span>
+        <span class="c"># A shortcut to the frozen distribution cdf as provided by scipy.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cumulative distribution function of the given frozen RV.</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">        x : array_like</span>
+<span class="sd">            quantiles</span>
+
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        cdf : ndarray</span>
+<span class="sd">            Cumulative distribution function evaluated at `x`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">ppf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+        <span class="c"># A shortcut to the frozen distribution ppf as provided by scipy.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Percent point function (inverse of cdf) at q of the given frozen RV.</span>
+
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">        q : array_like</span>
+<span class="sd">            lower tail probability</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        x : array_like</span>
+<span class="sd">            quantile corresponding to the lower tail probability q.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">moments</span><span class="p">):</span>
+        <span class="c"># A shortcut to the frozen distribution stats as provided by scipy.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Some statistics of the given RV.</span>
+
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">        moments : str, optional</span>
+<span class="sd">            composed of letters [&#39;mvsk&#39;] defining which moments to compute:</span>
+<span class="sd">            &#39;m&#39; = mean,</span>
+<span class="sd">            &#39;v&#39; = variance,</span>
+<span class="sd">            &#39;s&#39; = (Fisher&#39;s) skew,</span>
+<span class="sd">            &#39;k&#39; = (Fisher&#39;s) kurtosis.</span>
+<span class="sd">            (default=&#39;mv&#39;)</span>
+
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        stats : sequence</span>
+<span class="sd">            of requested moments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">stats</span><span class="p">(</span><span class="n">moments</span><span class="p">)</span>    
+    
+    <span class="k">def</span> <span class="nf">_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">):</span>
+        <span class="c"># helper function for:</span>
+        <span class="c">#     self.plot_density()</span>
+        <span class="c">#     self.plot_pp()</span>
+        <span class="c">#     self.plot_qq()</span>
+        <span class="c">#     self.plot_return_values()</span>
+        <span class="c">#     self.plot_summary()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_axis_bgcolor</span><span class="p">((</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">))</span>
+        <span class="n">_plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span> <span class="n">linewidth</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;magenta&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ax</span>
+        
+    <span class="k">def</span> <span class="nf">plot_density</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Histogram of the empirical pdf data and the pdf plot of the </span>
+<span class="sd">        fitted distribution.</span>
+<span class="sd">        All parameters are predefined from the frozen fitted model and empirical</span>
+<span class="sd">        data available.</span>
+
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        Density plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">_plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        
+        <span class="c"># data</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.001</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.999</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+        
+        <span class="c"># plot</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Fitted&#39;</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;k&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">normed</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> 
+                <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.75</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&quot;Empirical&quot;</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;Density Plot&#39;</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="s">&#39;f(x)&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">&#39;best&#39;</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>     
+    
+    <span class="k">def</span> <span class="nf">plot_pp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        PP (probability) plot between empirical and fitted data.</span>
+<span class="sd">        All parameters are predefined from the frozen fitted model and empirical</span>
+<span class="sd">        data available.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        PP plot. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">_plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        
+        <span class="c"># data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        
+        <span class="c"># plot</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;darkcyan&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;P-P Plot&#39;</span><span class="p">,</span> <span class="s">&#39;model&#39;</span><span class="p">,</span> <span class="s">&#39;empirical&#39;</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">plot_qq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        QQ (Quantile-Quantile) plot between empirical and fitted data.</span>
+<span class="sd">        All parameters are predefined from the frozen fitted model and empirical</span>
+<span class="sd">        data available.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        QQ plot. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">_plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        
+        <span class="c"># data</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c"># plot</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;Q-Q Plot&#39;</span><span class="p">,</span> <span class="s">&#39;model&#39;</span><span class="p">,</span> <span class="s">&#39;empirical&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;forestgreen&#39;</span><span class="p">)</span>
+        <span class="n">low_lim</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.95</span>
+        <span class="n">high_lim</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1.05</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">low_lim</span><span class="p">,</span> <span class="n">high_lim</span><span class="p">],</span> <span class="p">[</span><span class="n">low_lim</span><span class="p">,</span> <span class="n">high_lim</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s">&#39;k&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">low_lim</span><span class="p">,</span> <span class="n">high_lim</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">low_lim</span><span class="p">,</span> <span class="n">high_lim</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">plot_return_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return values and return periods of data. If confidence interval </span>
+<span class="sd">        information has been provided it will show the confidence interval </span>
+<span class="sd">        values.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        Return values and return periods plot. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">_plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        
+        <span class="c"># data</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">500.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">sT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frec</span> <span class="o">*</span> <span class="mf">1.</span><span class="o">/</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frec</span>
+        <span class="n">Nmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        
+        <span class="c"># plot</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;Return Level Plot&#39;</span><span class="p">,</span> <span class="s">&#39;Return period&#39;</span><span class="p">,</span> <span class="s">&#39;Return level&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">sT</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frec</span> <span class="o">*</span> <span class="n">Nmax</span><span class="o">/</span><span class="n">N</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;orangered&#39;</span><span class="p">)</span>
+        
+        <span class="c"># plot confidence intervals if available</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span><span class="p">:</span>
+            <span class="c">#y1 = sT - st.norm.ppf(1 - self.ci / 2) * np.sqrt(self._ci_se)</span>
+            <span class="c">#y2 = sT + st.norm.ppf(1 - self.ci / 2) * np.sqrt(self._ci_se)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Td</span><span class="p">,</span> <span class="s">&#39;--&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Tu</span><span class="p">,</span> <span class="s">&#39;--&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Td</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Tu</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;0.75&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">plot_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Summary plot including PP plot, QQ plot, empirical and fitted pdf and</span>
+<span class="sd">        return values and periods.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+<span class="sd">        </span>
+<span class="sd">        4-panel plot including PP, QQ, pdf and return level plots</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="p">((</span><span class="n">ax3</span><span class="p">,</span> <span class="n">ax2</span><span class="p">),</span> <span class="p">(</span><span class="n">ax4</span><span class="p">,</span> <span class="n">ax1</span><span class="p">))</span> <span class="o">=</span> <span class="n">_plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        
+        <span class="c"># PDF plot</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.001</span><span class="p">),</span> 
+                        <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.999</span><span class="p">),</span> 
+                        <span class="mi">100</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Fitted&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">normed</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> 
+                <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;yellow&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.75</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&quot;Empirical&quot;</span><span class="p">)</span>
+        <span class="n">ax1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="s">&#39;Density Plot&#39;</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="s">&#39;f(x)&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">&#39;best&#39;</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        
+        <span class="c"># QQ plot</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="s">&#39;P-P Plot&#39;</span><span class="p">,</span> <span class="s">&#39;model&#39;</span><span class="p">,</span> <span class="s">&#39;empirical&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;darkcyan&#39;</span><span class="p">)</span>
+        
+        <span class="c"># PP Plot</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;forestgreen&#39;</span><span class="p">)</span>
+        <span class="n">low_lim</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.95</span>
+        <span class="n">high_lim</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1.05</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">low_lim</span><span class="p">,</span> <span class="n">high_lim</span><span class="p">],</span> <span class="p">[</span><span class="n">low_lim</span><span class="p">,</span> <span class="n">high_lim</span><span class="p">])</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">low_lim</span><span class="p">,</span> <span class="n">high_lim</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">low_lim</span><span class="p">,</span> <span class="n">high_lim</span><span class="p">)</span>
+        <span class="n">ax3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">ax3</span><span class="p">,</span> <span class="s">&#39;Q-Q Plot&#39;</span><span class="p">,</span> <span class="s">&#39;model&#39;</span><span class="p">,</span> <span class="s">&#39;empirical&#39;</span><span class="p">)</span>
+        
+        <span class="c"># Return levels plot</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">500.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">sT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frec</span><span class="o">/</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frec</span>
+        <span class="n">Nmax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">ax4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">ax4</span><span class="p">,</span> <span class="s">&#39;Return Level Plot&#39;</span><span class="p">,</span> 
+                              <span class="s">&#39;Return period&#39;</span><span class="p">,</span> 
+                              <span class="s">&#39;Return level&#39;</span><span class="p">)</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">sT</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">)</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frec</span> <span class="o">*</span> <span class="n">Nmax</span><span class="o">/</span><span class="n">N</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;orangered&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span><span class="p">:</span>
+            <span class="c">#y1 = sT - st.norm.ppf(1 - self.ci / 2) * np.sqrt(self._ci_se)</span>
+            <span class="c">#y2 = sT + st.norm.ppf(1 - self.ci / 2) * np.sqrt(self._ci_se)</span>
+            <span class="n">ax4</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Td</span><span class="p">,</span> <span class="s">&#39;--&#39;</span><span class="p">)</span>
+            <span class="n">ax4</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Tu</span><span class="p">,</span> <span class="s">&#39;--&#39;</span><span class="p">)</span>
+            <span class="n">ax4</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Td</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Tu</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">&#39;0.75&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
+        
+        <span class="c"># I love matplotlib for stuff like this, thanks, guys!!!</span>
+        <span class="n">_plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">ax3</span><span class="p">,</span> <span class="n">ax4</span>
+        
+        
+<div class="viewcode-block" id="GEV"><a class="viewcode-back" href="../../../Module models.classic.html#skextremes.models.classic.GEV">[docs]</a><span class="k">class</span> <span class="nc">GEV</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to fit data to a Generalised extreme value (GEV) distribution.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">    data : array_like</span>
+<span class="sd">        1D array_like with the extreme values to be considered</span>
+<span class="sd">    fit_method : str</span>
+<span class="sd">        String indicating the method used to fit the distribution.</span>
+<span class="sd">        Availalable values are &#39;mle&#39; (default value), &#39;mom&#39; and &#39;lmoments&#39;.</span>
+<span class="sd">    ci : float (optional)</span>
+<span class="sd">        Float indicating the value to be used for the calculation of the </span>
+<span class="sd">        confidence interval. The returned values are (ci/2, 1-ci/2) </span>
+<span class="sd">        percentile confidence intervals. E.g., a value of 0.05 will </span>
+<span class="sd">        return confidence intervals at 0.025 and 0.975 percentiles.</span>
+<span class="sd">    ci_method : str (optional)</span>
+<span class="sd">        String indicating the method to be used to calculate the </span>
+<span class="sd">        confidence intervals. If ``ci`` is not supplied this parameter will </span>
+<span class="sd">        be ignored. Possible values depend of the fit method chosen. If </span>
+<span class="sd">        the fit method is &#39;mle&#39; possible values for ci_method are </span>
+<span class="sd">        &#39;delta&#39; and &#39;bootstrap&#39;, if the fit method is &#39;mom&#39; or </span>
+<span class="sd">        &#39;lmoments&#39; possible value for ci_method is &#39;bootstrap&#39;.</span>
+<span class="sd">            &#39;delta&#39; is for delta method.</span>
+<span class="sd">            &#39;bootstrap&#39; is for parametric bootstrap.</span>
+<span class="sd">    return_period : array_like (optional)</span>
+<span class="sd">        1D array_like of values for the *return period*. Values indicate</span>
+<span class="sd">        **years**. </span>
+<span class="sd">    frec : int or float</span>
+<span class="sd">        Value indicating the frecuency of events per year. If frec is </span>
+<span class="sd">        not provided the data will be treated as yearly data (1 value per </span>
+<span class="sd">        year).</span>
+
+<span class="sd">    **Attributes and Methods**</span>
+<span class="sd">    </span>
+<span class="sd">    params : OrderedDict</span>
+<span class="sd">        Ordered dictionary with the values of the *shape*, *location* and</span>
+<span class="sd">        *scale* parameters of the distribution.</span>
+<span class="sd">    c : flt</span>
+<span class="sd">        Float value for the *shape* parameter of the distribution.</span>
+<span class="sd">    loc : flt</span>
+<span class="sd">        Float value for the *location* parameter of the distribution.</span>
+<span class="sd">    scale : flt</span>
+<span class="sd">        Float value for the *scale* parameter of the distribution.</span>
+<span class="sd">    distr : object</span>
+<span class="sd">        Frozen RV object with the same methods of a continuous scipy</span>
+<span class="sd">        distribution but holding the given *shape*, *location*, and *scale* </span>
+<span class="sd">        fixed. See http://docs.scipy.org/doc/scipy/reference/stats.html</span>
+<span class="sd">        for more info.</span>
+<span class="sd">    data : array_like</span>
+<span class="sd">        Input data used for the fit</span>
+<span class="sd">    fit_method : str</span>
+<span class="sd">        String indicating the method used to fit the distribution,</span>
+<span class="sd">        values can be &#39;mle&#39;, &#39;mom&#39; or &#39;lmoments&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Fit can be made using Maximum Likelihood Estimation (mle) or using</span>
+        <span class="c"># l-moments. </span>
+        <span class="c"># L-moments is fast and accurate most of the time for the GEV</span>
+        <span class="c"># distribution. </span>
+        
+        <span class="c"># MLE FIT</span>
+        <span class="c"># In the case of the mle estimation, sometimes we get unstable values</span>
+        <span class="c"># if we don&#39;t provide an initial guess of the parameters. Loc and scale </span>
+        <span class="c"># are more or less stable but shape can be quite unstable depending the </span>
+        <span class="c"># input data. This is why we are using lmoments to obtain start values </span>
+        <span class="c"># for the mle optimization. For mle we are using fmin_bfgs as it is </span>
+        <span class="c"># faster than others and with the first guess provide accurate results.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;mle&#39;</span><span class="p">:</span>
+            <span class="c"># Initial guess to make the fit of GEV more stable</span>
+            <span class="c"># To do the initial guess we are using lmoments...</span>
+            <span class="n">_params0</span> <span class="o">=</span> <span class="n">_lmdistr</span><span class="o">.</span><span class="n">gev</span><span class="o">.</span><span class="n">lmom_fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="c"># The mle fit will start with the initial estimators obtained</span>
+            <span class="c"># with lmoments above</span>
+            <span class="n">_params</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">genextreme</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">_params0</span><span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">],</span>
+                                        <span class="n">loc</span> <span class="o">=</span> <span class="n">_params0</span><span class="p">[</span><span class="s">&#39;loc&#39;</span><span class="p">],</span>
+                                        <span class="n">scale</span> <span class="o">=</span> <span class="n">_params0</span><span class="p">[</span><span class="s">&#39;scale&#39;</span><span class="p">],</span>
+                                        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">_op</span><span class="o">.</span><span class="n">fmin_bfgs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="c"># For the shape parameter the value provided by scipy </span>
+            <span class="c"># is defined as negative as that obtained from other</span>
+            <span class="c"># packages in R, some textbooks, wikipedia,... ¿?</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;shape&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;scale&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        
+        <span class="c"># L-MOMENTS FIT</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;lmoments&#39;</span><span class="p">:</span>
+            <span class="n">_params</span> <span class="o">=</span> <span class="n">_lmdistr</span><span class="o">.</span><span class="n">gev</span><span class="o">.</span><span class="n">lmom_fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="c"># For the shape parameter the value provided by lmoments3 </span>
+            <span class="c"># is defined as negative as that obtained from other</span>
+            <span class="c"># packages in R, some textbooks, wikipedia,... ¿?</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;shape&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="s">&#39;loc&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;scale&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="s">&#39;scale&#39;</span><span class="p">]</span>
+        
+        <span class="c"># METHOD OF MOMENTS FIT</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;mom&#39;</span><span class="p">:</span>
+            <span class="n">_params</span> <span class="o">=</span> <span class="n">_gev_momfit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;shape&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;scale&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        
+        <span class="c"># Estimators and a frozen distribution for the estimators</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;shape&#39;</span><span class="p">]</span>      <span class="c"># shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">]</span>   <span class="c"># location</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;scale&#39;</span><span class="p">]</span>      <span class="c"># scale</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distr</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">genextreme</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">,</span>     <span class="c"># frozen distribution</span>
+                                   <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> 
+                                   <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+                                   
+    <span class="k">def</span> <span class="nf">_nnlf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+        <span class="c"># This is used to calculate the variance-covariance matrix using the</span>
+        <span class="c"># Hessian from numdifftools</span>
+        <span class="c"># see self._ci_delta() method below</span>
+        
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        
+        <span class="c"># Here we provide code for the GEV distribution and for the special</span>
+        <span class="c"># case when shape parameter is 0 (Gumbel distribution).</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">loc</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="o">+</span> 
+                   <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">c</span><span class="p">)</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span> <span class="o">+</span>
+                   <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">expr</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">c</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">loc</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="o">+</span> 
+                   <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">+</span>
+                   <span class="n">_np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">expr</span><span class="p">)))</span>
+     
+    <span class="k">def</span> <span class="nf">_ci_delta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Calculate the variance-covariance matrix using the</span>
+        <span class="c"># hessian from numdifftools</span>
+        <span class="c"># This is used to obtain confidence intervals for the estimators and</span>
+        <span class="c"># the return values for several return values.</span>
+        <span class="c">#</span>
+        <span class="c"># More info about the delta method can be found on:</span>
+        <span class="c">#     - Coles, Stuart: &quot;An Introduction to Statistical Modeling of  </span>
+        <span class="c">#     Extreme Values&quot;, Springer (2001)</span>
+        <span class="c">#     - https://en.wikipedia.org/wiki/Delta_method</span>
+        
+        <span class="c"># data</span>
+        <span class="n">c</span>  <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span>    <span class="c"># We negate the shape to avoid inconsistency problems!?</span>
+        <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+        <span class="n">hess</span> <span class="o">=</span> <span class="n">_ndt</span><span class="o">.</span><span class="n">Hessian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nnlf</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">500.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">sT</span> <span class="o">=</span> <span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">frec</span><span class="o">/</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">sT2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distr</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frec</span><span class="o">/</span><span class="n">T</span><span class="p">)</span>
+        
+        <span class="c"># VarCovar matrix and confidence values for estimators and return values</span>
+        <span class="c"># Confidence interval for return values (up values and down values)</span>
+        <span class="n">ci_Tu</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sT</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">ci_Td</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sT</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">c</span><span class="p">:</span>         <span class="c"># If c then we are calculating GEV confidence intervals</span>
+            <span class="n">varcovar</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">hess</span><span class="p">([</span><span class="n">c</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">se</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">varcovar</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_se</span> <span class="o">=</span> <span class="n">se</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;shape&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">-</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">+</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loc</span> <span class="o">-</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">loc</span> <span class="o">+</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;scale&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">-</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">+</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sT2</span><span class="p">):</span>
+                <span class="n">gradZ</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale</span> <span class="o">*</span> <span class="p">(</span><span class="n">c</span><span class="o">**-</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sT</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">c</span><span class="p">))</span> <span class="o">-</span> <span class="n">scale</span> <span class="o">*</span> <span class="p">(</span><span class="n">c</span><span class="o">**-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sT</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**-</span><span class="n">c</span><span class="p">)</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sT</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
+                         <span class="mi">1</span><span class="p">,</span> 
+                         <span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sT</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">c</span><span class="p">))</span> <span class="o">/</span> <span class="n">c</span><span class="p">]</span>
+                <span class="n">se</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gradZ</span><span class="p">,</span> <span class="n">varcovar</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">gradZ</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                <span class="n">ci_Tu</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span> <span class="o">+</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">se</span><span class="p">)</span>
+                <span class="n">ci_Td</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span> <span class="o">-</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">se</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>         <span class="c"># else then we are calculating Gumbel confidence intervals</span>
+            <span class="n">varcovar</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">hess</span><span class="p">([</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">se</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">varcovar</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_se</span> <span class="o">=</span> <span class="n">se</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;shape&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loc</span> <span class="o">-</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">loc</span> <span class="o">+</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;scale&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">-</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">+</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">se</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sT2</span><span class="p">):</span>
+                <span class="n">gradZ</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">_np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sT</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+                <span class="n">se</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gradZ</span><span class="p">,</span> <span class="n">varcovar</span><span class="p">),</span> <span class="n">_np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">gradZ</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                <span class="n">ci_Tu</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span> <span class="o">+</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">se</span><span class="p">)</span>
+                <span class="n">ci_Td</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span> <span class="o">-</span> <span class="n">_st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">_np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">se</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Tu</span> <span class="o">=</span> <span class="n">ci_Tu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Td</span> <span class="o">=</span> <span class="n">ci_Td</span>
+    
+    <span class="k">def</span> <span class="nf">_ci_bootstrap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Calculate confidence intervals using parametric bootstrap and the</span>
+        <span class="c"># percentil interval method</span>
+        <span class="c"># This is used to obtain confidence intervals for the estimators and</span>
+        <span class="c"># the return values for several return values.</span>
+        <span class="c"># all the code in skextremes.utils.bootstrap_ci has been adapted and</span>
+        <span class="c"># simplified from that on https://github.com/cgevans/scikits-bootstrap.</span>
+        <span class="c">#</span>
+        <span class="c"># More info about bootstrapping can be found on:</span>
+        <span class="c">#     - https://github.com/cgevans/scikits-bootstrap</span>
+        <span class="c">#     - Efron: &quot;An Introduction to the Bootstrap&quot;, Chapman &amp; Hall (1993)</span>
+        <span class="c">#     - https://en.wikipedia.org/wiki/Bootstrapping_%28statistics%29</span>
+        
+        <span class="c"># parametric bootstrap for return levels and parameters   </span>
+        
+        <span class="c"># The function to bootstrap     </span>
+        <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">genextreme</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> 
+                                       <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> 
+                                       <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span> 
+                                       <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+            <span class="n">c</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">genextreme</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> 
+                                              <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> 
+                                              <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+                                              <span class="n">optimizer</span> <span class="o">=</span> <span class="n">_op</span><span class="o">.</span><span class="n">fmin_bfgs</span><span class="p">)</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">500.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">sT</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">genextreme</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frec</span><span class="o">/</span><span class="n">T</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">loc</span> <span class="o">=</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">scale</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">]</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">sT</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        
+        <span class="c"># the calculations itself</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">_bsci</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">statfunction</span> <span class="o">=</span> <span class="n">func</span><span class="p">,</span> <span class="n">n_samples</span> <span class="o">=</span> <span class="mi">500</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Td</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ci_Tu</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;shape&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params_ci</span><span class="p">[</span><span class="s">&#39;scale&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+    
+    <span class="k">def</span> <span class="nf">_ci</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Method called internally to calculate confidence intervals if </span>
+        <span class="c"># required. To see more info about available methods see comments on</span>
+        <span class="c"># self._ci_delta and self._ci_bootstrap methods.</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci_method</span> <span class="o">==</span> <span class="s">&quot;delta&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ci_delta</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ci_method</span> <span class="o">==</span> <span class="s">&quot;bootstrap&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ci_bootstrap</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Gumbel"><a class="viewcode-back" href="../../../Module models.classic.html#skextremes.models.classic.Gumbel">[docs]</a><span class="k">class</span> <span class="nc">Gumbel</span><span class="p">(</span><span class="n">GEV</span><span class="p">):</span>
+    <span class="n">__doc__</span> <span class="o">=</span> <span class="n">GEV</span><span class="o">.</span><span class="n">__doc__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;Generalised extreme value (GEV) distribution.&quot;</span><span class="p">,</span> 
+                                  <span class="p">(</span><span class="s">&quot;Gumbel distribution. Note that this is a &quot;</span>
+                                   <span class="s">&quot;special case of the ``GEV`` class where &quot;</span>
+                                   <span class="s">&quot;the &#39;shape&#39; is fixed to 0.&quot;</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;mle&#39;</span><span class="p">:</span>
+            <span class="n">_params</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">gumbel_r</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;shape&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;scale&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;lmoments&#39;</span><span class="p">:</span>
+            <span class="n">_params</span> <span class="o">=</span> <span class="n">_lmdistr</span><span class="o">.</span><span class="n">gum</span><span class="o">.</span><span class="n">lmom_fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;shape&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="s">&#39;loc&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;scale&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="s">&#39;scale&#39;</span><span class="p">]</span>
+        
+        <span class="c"># METHOD OF MOMENTS FIT</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="o">==</span> <span class="s">&#39;mom&#39;</span><span class="p">:</span>
+            <span class="n">_params</span> <span class="o">=</span> <span class="n">_gum_momfit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;shape&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&quot;scale&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">_params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;shape&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;location&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;scale&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distr</span> <span class="o">=</span> <span class="n">_st</span><span class="o">.</span><span class="n">gumbel_r</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> 
+                                   <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="GPD"><a class="viewcode-back" href="../../../Module models.classic.html#skextremes.models.classic.GPD">[docs]</a><span class="k">class</span> <span class="nc">GPD</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, kikocorreoso.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
