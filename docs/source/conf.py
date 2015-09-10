@@ -15,11 +15,12 @@
 
 import sys
 import os
-import mock
+from unittest.mock import Mock
 
-MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'numdifftools']
+MOCK_MODULES = ['numpy', 'scipy', 'scipy.stats', 
+                'matplotlib', 'matplotlib.pyplot', 'numdifftools']
 for mod_name in MOCK_MODULES:
-   sys.modules[mod_name] = mock.Mock() 
+   sys.modules[mod_name] = Mock() 
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
