@@ -15,12 +15,15 @@
 
 import sys
 import os
-from unittest.mock import Mock
 
-MOCK_MODULES = ['numpy', 'scipy', 'scipy.stats', 
-                'matplotlib', 'matplotlib.pyplot', 'numdifftools']
-for mod_name in MOCK_MODULES:
-   sys.modules[mod_name] = Mock() 
+# on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if on_rtd:
+    import mock
+    MOCK_MODULES = ['numpy', 'scipy', 'scipy.stats', 
+                    'matplotlib', 'matplotlib.pyplot', 'numdifftools']
+    for mod_name in MOCK_MODULES:
+       sys.modules[mod_name] = mock.Mock() 
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
