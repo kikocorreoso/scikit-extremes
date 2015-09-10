@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>User guide &mdash; scikit-extremes 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="scikit-extremes 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="skextremes.utils" href="Module utils.html" />
+    <link rel="prev" title="Quick and incomplete Extreme Value Theory introduction" href="Small EVT introduction.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="user-guide">
+<h1>User guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<p>First of all you should import the package:</p>
+<div class="code python highlight-python"><div class="highlight"><pre>import skextremes as ske
+import matplotlib.pyplot as plt
+%matplotlib inline
+</pre></div>
+</div>
+<p>Some datasets are included in the package. For example, we will use sea
+level data from Port Pirie, in Australia.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">data</span> <span class="o">=</span> <span class="n">ske</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">portpirie</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>Annual Maximum Sea Levels at Port Pirie, South Australia
+--------------------------------------------------------
+
+Fields:
+ year: numpy.array defining the year for the row data.
+ sea_level: numpy.array defining annual maximum sea level recorded at
+    Port Pirie, South Australia.
+
+Source:
+ -Coles, S. G. (2001). An Introduction to Statistical Modelling of
+    Extreme Values. London: Springer.
+</pre></div>
+</div>
+<p>As can be seen from the description of the dataset we have two fields,
+<code class="docutils literal"><span class="pre">sea_level</span></code>, with the annual maximum sea level records, and <code class="docutils literal"><span class="pre">year</span></code>,
+indicating the year of the record.</p>
+<p>To get the dataset we can use the <code class="docutils literal"><span class="pre">.asarray</span></code> method to obtain all the
+fields as a <code class="docutils literal"><span class="pre">numpy.array</span></code> or just select a field to get a 1D
+<code class="docutils literal"><span class="pre">numpy.array</span></code> with the records for the field.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">data_array</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">asarray</span><span class="p">()</span>
+<span class="n">sea_levels</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">sea_level</span>
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="n">sea_levels</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>[ 4.03  3.83  3.65  3.88  4.01  4.08  4.18  3.8   4.36  3.96  3.98  4.69
+  3.85  3.96  3.85  3.93  3.75  3.63  3.57  4.25  3.97  4.05  4.24  4.22
+  3.73  4.37  4.06  3.71  3.96  4.06  4.55  3.79  3.89  4.11  3.85  3.86
+  3.86  4.21  4.01  4.11  4.24  3.96  4.21  3.74  3.85  3.88  3.66  4.11
+  3.71  4.18  3.9   3.78  3.91  3.72  4.    3.66  3.62  4.33  4.55  3.75
+  4.08  3.9   3.88  3.94  4.33]
+</pre></div>
+</div>
+<p>We have several options, located in the <code class="docutils literal"><span class="pre">skextremes.models</span></code>
+subpackage, to calculate extreme values. Depending the chosen model some
+methods and attributes will be available.</p>
+<p>Models are divided in several packages:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">wind</span></code>: Some very basic functions to calculate wind extreme values
+obtained from the Wind Energy industry. These are very basic
+approximations based on parameters of wind data and should only be
+used to calculate the expected wind speed value for a 50 years return
+period.</li>
+<li><code class="docutils literal"><span class="pre">engineering</span></code>: Basic models found in the literature based, mainly,
+on the Gumbel distribution and the Block Maxima approach.</li>
+<li><code class="docutils literal"><span class="pre">classic</span></code>: A more classical approach from the theory to obtain
+extreme values using fitting accepted distributions generally used in
+the extreme value theory.</li>
+</ul>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">model</span> <span class="o">=</span> <span class="n">ske</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">engineering</span><span class="o">.</span><span class="n">Lieblein</span><span class="p">(</span><span class="n">sea_levels</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Once the model is fitted you can see the results:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">model</span><span class="o">.</span><span class="n">plot_results</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>(&lt;matplotlib.figure.Figure at 0xf449d70&gt;,
+ &lt;matplotlib.axes._subplots.AxesSubplot at 0x4632f70&gt;,
+ &lt;matplotlib.axes._subplots.AxesSubplot at 0x466a410&gt;,
+ &lt;matplotlib.axes._subplots.AxesSubplot at 0x4693410&gt;)
+</pre></div>
+</div>
+<img alt="_static%5CUser_guide_12_1.png" src="_static%5CUser_guide_12_1.png" />
+<p>To see, for instance, the parameters obtained you can use:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>0 3.86774852633 0.198420194778
+</pre></div>
+</div>
+<p>Another approach would be to use a more classic model:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">model</span> <span class="o">=</span> <span class="n">ske</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">classic</span><span class="o">.</span><span class="n">GEV</span><span class="p">(</span><span class="n">sea_levels</span><span class="p">,</span> <span class="n">fit_method</span> <span class="o">=</span> <span class="s">&#39;mle&#39;</span><span class="p">,</span> <span class="n">ci</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+                              <span class="n">ci_method</span> <span class="o">=</span> <span class="s">&#39;delta&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<pre class="literal-block">
+d:usersX003621AppDataLocalContinuumMiniconda3libsite-packagesnumdifftoolscore.py:753: UserWarning: The stepsize (3.16814) is possibly too large!
+  warnings.warn('The stepsize (%g) is possibly too large!' % h1[i])
+d:usersX003621AppDataLocalContinuumMiniconda3libsite-packagesnumdifftoolscore.py:753: UserWarning: The stepsize (0.18069) is possibly too large!
+  warnings.warn('The stepsize (%g) is possibly too large!' % h1[i])
+d:usersX003621AppDataLocalContinuumMiniconda3libsite-packagesnumdifftoolscore.py:753: UserWarning: The stepsize (0.278302) is possibly too large!
+  warnings.warn('The stepsize (%g) is possibly too large!' % h1[i])
+d:usersX003621AppDataLocalContinuumMiniconda3libsite-packagesnumdifftoolscore.py:753: UserWarning: The stepsize (0.0664633) is possibly too large!
+  warnings.warn('The stepsize (%g) is possibly too large!' % h1[i])
+</pre>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">model</span><span class="o">.</span><span class="n">params</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">OrderedDict</span><span class="p">([(</span><span class="s">&#39;shape&#39;</span><span class="p">,</span> <span class="mf">0.050109518363545352</span><span class="p">),</span>
+             <span class="p">(</span><span class="s">&#39;location&#39;</span><span class="p">,</span> <span class="mf">3.8747498425529501</span><span class="p">),</span>
+             <span class="p">(</span><span class="s">&#39;scale&#39;</span><span class="p">,</span> <span class="mf">0.19804394476624812</span><span class="p">)])</span>
+</pre></div>
+</div>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">model</span><span class="o">.</span><span class="n">plot_summary</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_static%5CUser_guide_18_0.png" src="_static%5CUser_guide_18_0.png" />
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Small EVT introduction.html" title="previous chapter">Quick and incomplete Extreme Value Theory introduction</a></li>
+      <li>Next: <a href="Module utils.html" title="next chapter">skextremes.utils</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/User guide.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, kikocorreoso.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/User guide.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
