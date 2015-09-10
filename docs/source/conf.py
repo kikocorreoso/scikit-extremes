@@ -16,14 +16,32 @@
 import sys
 import os
 
-# on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    import mock
-    MOCK_MODULES = ['numpy', 'scipy', 'scipy.stats', 
-                    'matplotlib', 'matplotlib.pyplot', 'numdifftools']
-    for mod_name in MOCK_MODULES:
-       sys.modules[mod_name] = mock.Mock() 
+print("python exec:", sys.executable)
+print("sys.path:", sys.path)
+try:
+    import numpy
+    print("numpy: %s, %s" % (numpy.__version__, numpy.__file__))
+except ImportError:
+    print("no numpy")
+try:
+    import matplotlib
+    print("matplotlib: %s, %s" % (matplotlib.__version__, matplotlib.__file__))
+except ImportError:
+    print("no matplotlib")
+try:
+    import scipy
+    print("scipy: %s, %s" % (scipy.__version__, scipy.__file__))
+except ImportError:
+    print("no scipy")
+
+## on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
+#on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+#if on_rtd:
+    #import mock
+    #MOCK_MODULES = ['numpy', 'scipy', 'scipy.stats', 
+                    #'matplotlib', 'matplotlib.pyplot', 'numdifftools']
+    #for mod_name in MOCK_MODULES:
+       #sys.modules[mod_name] = mock.Mock() 
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
