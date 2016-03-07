@@ -29,8 +29,9 @@ To install the package you can follow the next steps:
 
 This is work in progress and at its current state only some models can be used:
 
-### Gumbel 
-### Generalised Extreme Value (GEV)
+### Gumbel.
+### Generalised Extreme Value (GEV).
+### Other functionality related mainly with the wind industry.
 
 # To-Do
 
