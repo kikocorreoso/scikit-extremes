@@ -37,4 +37,6 @@ This is work in progress and at its current state only some models can be used:
 ### Add GPD.
 ### Add Bayesian inference.
 ### Point process?
+### Improve matplotlib figures.
 ### [Open an issue](https://github.com/kikocorreoso/scikit-extremes/issues) to propose more features or enhancements.
+### Add pandas as a dependency to work with dates.
