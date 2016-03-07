@@ -5,7 +5,7 @@ using Python
 
 # Docs
 
-Documemtation can be found [here](http://kikocorreoso.github.io/scikit-extremes/).
+Documentation can be found [here](http://kikocorreoso.github.io/scikit-extremes/).
 
 # Installation
 
