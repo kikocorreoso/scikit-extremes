@@ -179,7 +179,7 @@ class _Base:
         #     self.plot_qq()
         #     self.plot_return_values()
         #     self.plot_summary()
-        ax.set_axis_bgcolor((0.95, 0.95, 0.95))
+        ax.set_facecolor((0.95, 0.95, 0.95))
         _plt.setp(ax.lines, linewidth = 2, color = 'magenta')
         ax.set_title(title)
         ax.set_xlabel(xlabel)
@@ -206,7 +206,7 @@ class _Base:
         
         # plot
         ax.plot(x, self.distr.pdf(x), label = 'Fitted', color = 'k')
-        ax.hist(self.data, normed = True, 
+        ax.hist(self.data, density = True, 
                 color = 'yellow', alpha = 0.75, label = "Empirical")
         ax = self._plot(ax, 'Density Plot', 'x', 'f(x)')
         ax.legend(loc='best', frameon=False)     
@@ -314,7 +314,7 @@ class _Base:
                         self.distr.ppf(0.999), 
                         100)
         ax1.plot(x, self.distr.pdf(x), label = 'Fitted')
-        ax1.hist(self.data, normed = True, 
+        ax1.hist(self.data, density = True, 
                 color = 'yellow', alpha = 0.75, label = "Empirical")
         ax1 = self._plot(ax1, 'Density Plot', 'x', 'f(x)')
         ax1.legend(loc='best', frameon=False)

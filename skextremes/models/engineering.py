@@ -142,7 +142,7 @@ class _GumbelBase:
         # plot the distribution
         _x = _np.linspace(self.distr.ppf(0.001), self.distr.ppf(0.999), 100)
         ax3.hist(x,  
-                 normed = True, alpha = 0.2)
+                 density = True, alpha = 0.2)
         ax3.plot(_x, self.distr.pdf(_x), label = 'Fitted', color = 'k')
         desf = xmax * 0.1
         ax3.set_xlim(xmin - desf, xmax + desf)
