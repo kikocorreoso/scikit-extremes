@@ -21,8 +21,9 @@ To install the package you can follow the next steps:
 
 * Python >= 3.3
 * Numpy
+* Scipy >= 1.0
 * Matplotlib
-* NumDiffTools > 0.7
+* NumDiffTools >= 0.9.2
 * lmoments3
 
 # WIP
