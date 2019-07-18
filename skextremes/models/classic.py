@@ -546,7 +546,7 @@ class GEV(_Base):
                 gradZ = [scale * (c**-2) * (1 - sT[i] ** (-c)) - scale * (c**-1) * (sT[i]**-c) * _np.log(sT[i]),
                          1, 
                          -(1 - sT[i] ** (-c)) / c]
-                se = _np.dot(_np.dot(gradZ, varcovar), _np.matrix(gradZ).T)
+                se = _np.dot(_np.dot(gradZ, varcovar), _np.array(gradZ).T)
                 ci_Tu[i] = val + _st.norm.ppf(1 - self.ci / 2) * _np.sqrt(se)
                 ci_Td[i] = val - _st.norm.ppf(1 - self.ci / 2) * _np.sqrt(se)
         else:         # else then we are calculating Gumbel confidence intervals
@@ -561,7 +561,7 @@ class GEV(_Base):
                                           self.scale + _st.norm.ppf(1 - self.ci / 2) * se[1])
             for i, val in enumerate(sT2):
                 gradZ = [1, -_np.log(sT[i])]
-                se = _np.dot(_np.dot(gradZ, varcovar), _np.matrix(gradZ).T)
+                se = _np.dot(_np.dot(gradZ, varcovar), _np.array(gradZ).T)
                 ci_Tu[i] = val + _st.norm.ppf(1 - self.ci / 2) * _np.sqrt(se)
                 ci_Td[i] = val - _st.norm.ppf(1 - self.ci / 2) * _np.sqrt(se)
         self._ci_Tu = ci_Tu
