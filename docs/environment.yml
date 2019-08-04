@@ -6,6 +6,10 @@ dependencies:
   - pandoc
   - nbconvert>=5.5
   - ipykernel
+  - numpy
+  - scipy
+  - numdiftools>=0.9.2
+  - matplotlib
   - pip:
-    - nbsphinx
-    - sphinx-rtd-theme
+    - git+https://github.com/kikocorreoso/scikit-extremes.git
+    - git+https://github.com/OpenHydrology/lmoments3.git
