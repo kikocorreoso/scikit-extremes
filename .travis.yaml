@@ -10,6 +10,7 @@ python:
 # command to install dependencies
 install:
   - pip install -e .
+  - pip install git+https://github.com/OpenHydrology/lmoments3.git # temporary until this is correcly updated on PyPI
   - pip install -e .[dev]
 # command to run tests
 script:
