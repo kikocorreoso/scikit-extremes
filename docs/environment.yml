@@ -3,13 +3,11 @@ channels:
 dependencies:
   - python>=3
   - sphinx>=1.6
-  - pandoc
-  - nbconvert>=5.5
-  - ipykernel
   - numpy
   - scipy
   - numdiftools>=0.9.2
   - matplotlib
+  - git
   - pip:
     - git+https://github.com/OpenHydrology/lmoments3.git
     - git+https://github.com/kikocorreoso/scikit-extremes.git
