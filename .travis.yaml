@@ -1,0 +1,16 @@
+dist: xenial   # required for Python >= 3.7
+language: python
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  # PyPy versions
+  - "pypy3.5"
+  - "pypy3.6"
+# command to install dependencies
+install:
+  - pip install -e .
+  - pip install -e .[dev]
+# command to run tests
+script:
+  - pytest
