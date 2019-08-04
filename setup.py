@@ -3,7 +3,7 @@ from setuptools import (
     find_packages,
 )  # Always prefer setuptools over distutils
 
-install_requires = ["numpy", "matplotlib", "scipy>=1.0", "numdifftools>=0.9.2"]
+install_requires = ["numpy", "matplotlib", "scipy>=1.0", "numdifftools>=0.9.20"]
 
 extras_require = {
     "dev": ["pytest", "pytest-cov", "nbsphinx", "sphinx", "sphinx_rtd_theme"]
