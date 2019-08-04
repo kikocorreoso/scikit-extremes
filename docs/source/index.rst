@@ -22,7 +22,20 @@ To work with scikit-extremes you will need the following libraries:
 Installation
 ------------
 
-``pip install scikit-extremes``
+At this moment there isn't an official release. To install the package you can
+follow the next steps:
+
+.. parsed-literal::
+
+    # lmoments has not been updated in a while so we use the master
+    # (see https://github.com/OpenHydrology/lmoments3/issues/8)
+    pip install git+https://github.com/OpenHydrology/lmoments3.git
+
+    git clone https://github.com/kikocorreoso/scikit-extremes.git
+
+    cd scikit-extremes
+
+    pip install -e .
 
 Support
 -------
