@@ -92,7 +92,7 @@ Once the model is fitted you can see the results:
 
 .. code:: python
 
-    model.plot_results()
+    model.plot_summary()
 
 
 
