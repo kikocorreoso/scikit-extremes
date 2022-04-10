@@ -3,6 +3,8 @@
 Basic statistical package to perform univariate extreme value calculations
 using Python
 
+[There is also `pyextremes`, a more updated package to analyze extreme values using Python.](https://github.com/georgebv/pyextremes)
+
 # Docs
 
 Documentation can be found [here](https://scikit-extremes.readthedocs.io/en/latest/).
